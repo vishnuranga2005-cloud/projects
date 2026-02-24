@@ -1,14 +1,42 @@
+import { useState, useEffect } from 'react'
 import { useApp } from '../../contexts/AppContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 
 export default function HospitalDashboard() {
   const { appointments, emergencies, getActiveEmergencyDelay } = useApp()
   const { t } = useLanguage()
+  const [currentTime, setCurrentTime] = useState(new Date())
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [])
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  }
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    })
+  }
 
   const activeEmergencies = emergencies.filter((e) => e.status === 'active')
   const delay = getActiveEmergencyDelay()
 
-  const todayAppointments = appointments.filter((apt) => apt.date === '2026-02-22')
+  const todayDateString = currentTime.toISOString().split('T')[0]
+  const todayAppointments = appointments.filter((apt) => apt.date === todayDateString)
   const pendingCount = appointments.filter((apt) => apt.status === 'pending').length
   const confirmedCount = appointments.filter((apt) => apt.status === 'confirmed').length
   const inProgressCount = appointments.filter((apt) => apt.status === 'in-progress').length
@@ -26,9 +54,9 @@ export default function HospitalDashboard() {
             {t('hospitalDashboard.subtitle') || 'Manage appointments and emergencies'}
           </p>
         </div>
-        <div className="flex items-center gap-2 text-sm">
-          <span className="text-gray-500">Today:</span>
-          <span className="font-semibold text-gray-800">February 22, 2026</span>
+        <div className="flex flex-col items-end text-sm">
+          <span className="font-semibold text-gray-800">{formatDate(currentTime)}</span>
+          <span className="text-lg font-bold text-teal-600">{formatTime(currentTime)}</span>
         </div>
       </div>
 

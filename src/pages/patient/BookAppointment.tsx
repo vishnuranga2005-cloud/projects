@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useApp } from '../../contexts/AppContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 
@@ -17,22 +17,73 @@ const timeSlots = [
 ]
 
 export default function BookAppointment() {
-  const { addAppointment, getActiveEmergencyDelay } = useApp()
+  const { addAppointment, getActiveEmergencyDelay, currentPatient, getBookedSlots, appointments } = useApp()
   const { t } = useLanguage()
 
   const [step, setStep] = useState(1)
   const [selectedDoctor, setSelectedDoctor] = useState<typeof doctors[0] | null>(null)
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
-  const [patientName, setPatientName] = useState('')
-  const [patientPhone, setPatientPhone] = useState('')
+  const [patientName, setPatientName] = useState(currentPatient?.name || '')
+  const [patientPhone, setPatientPhone] = useState(currentPatient?.phone || '')
   const [bookingSuccess, setBookingSuccess] = useState(false)
+  const [currentTime, setCurrentTime] = useState(new Date())
 
   const delay = getActiveEmergencyDelay()
 
+  // Update current time every second for real-time slot availability
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Helper function to check if a time slot has passed
+  const isSlotPassed = (slotTime: string, date: string) => {
+    if (!date) return false
+    
+    const today = new Date().toISOString().split('T')[0]
+    
+    // If selected date is in the future, slot hasn't passed
+    if (date > today) return false
+    
+    // If selected date is in the past, slot has passed
+    if (date < today) return true
+    
+    // If it's today, check the time
+    const [time, period] = slotTime.split(' ')
+    const [hours, minutes] = time.split(':').map(Number)
+    let hour24 = hours
+    
+    if (period === 'PM' && hours !== 12) {
+      hour24 = hours + 12
+    } else if (period === 'AM' && hours === 12) {
+      hour24 = 0
+    }
+    
+    const slotDate = new Date()
+    slotDate.setHours(hour24, minutes, 0, 0)
+    
+    return currentTime > slotDate
+  }
+
+  // Get booked slots for selected doctor and date (updates in real-time)
+  const bookedSlots = selectedDoctor && selectedDate 
+    ? getBookedSlots(selectedDoctor.id, selectedDate) 
+    : []
+
+  // Reset selected time if it becomes booked or has passed
+  useEffect(() => {
+    if (selectedTime && (bookedSlots.includes(selectedTime) || isSlotPassed(selectedTime, selectedDate))) {
+      setSelectedTime('')
+    }
+  }, [bookedSlots, selectedTime, appointments, currentTime, selectedDate])
+
   const handleBooking = () => {
-    if (selectedDoctor && selectedDate && selectedTime && patientName && patientPhone) {
+    if (selectedDoctor && selectedDate && selectedTime && patientName && patientPhone && currentPatient) {
       addAppointment({
+        patientId: currentPatient.id,
         patientName,
         patientPhone,
         doctorId: selectedDoctor.id,
@@ -246,21 +297,52 @@ export default function BookAppointment() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Select Time Slot</label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-gray-700">Select Time Slot</label>
+                <span className="text-xs text-gray-400 flex items-center gap-1">
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                  Live updates
+                </span>
+              </div>
+              {(bookedSlots.length > 0 || selectedDate === new Date().toISOString().split('T')[0]) && (
+                <p className="text-sm text-amber-600 mb-3 flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                  </svg>
+                  Unavailable slots are shown in red (booked) or gray (time passed)
+                </p>
+              )}
               <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-                {timeSlots.map((time) => (
-                  <button
-                    key={time}
-                    onClick={() => setSelectedTime(time)}
-                    className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
-                      selectedTime === time
-                        ? 'border-teal-500 bg-teal-50 text-teal-700'
-                        : 'border-gray-200 hover:border-teal-300'
-                    }`}
-                  >
-                    {time}
-                  </button>
-                ))}
+                {timeSlots.map((time) => {
+                  const isBooked = bookedSlots.includes(time)
+                  const isPassed = isSlotPassed(time, selectedDate)
+                  const isUnavailable = isBooked || isPassed
+                  return (
+                    <button
+                      key={time}
+                      onClick={() => !isUnavailable && setSelectedTime(time)}
+                      disabled={isUnavailable}
+                      className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
+                        isBooked
+                          ? 'border-red-300 bg-red-50 text-red-400 cursor-not-allowed line-through'
+                          : isPassed
+                          ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : selectedTime === time
+                          ? 'border-teal-500 bg-teal-50 text-teal-700'
+                          : 'border-gray-200 hover:border-teal-300'
+                      }`}
+                      title={isBooked ? 'This slot is already booked' : isPassed ? 'This time has passed' : ''}
+                    >
+                      {time}
+                      {isBooked && (
+                        <span className="block text-xs mt-1">Booked</span>
+                      )}
+                      {isPassed && !isBooked && (
+                        <span className="block text-xs mt-1">Passed</span>
+                      )}
+                    </button>
+                  )
+                })}
               </div>
             </div>
             <div className="mt-6 flex justify-between">

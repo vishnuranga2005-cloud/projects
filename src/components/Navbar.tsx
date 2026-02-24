@@ -10,7 +10,7 @@ interface NavbarProps {
 
 export default function Navbar({ onMenuClick, userRole, onLogout }: NavbarProps) {
   const { language, setLanguage } = useLanguage()
-  const { emergencies } = useApp()
+  const { emergencies, currentPatient } = useApp()
 
   const activeEmergencies = emergencies.filter((e) => e.status === 'active')
 
@@ -93,13 +93,17 @@ export default function Navbar({ onMenuClick, userRole, onLogout }: NavbarProps)
           {/* User Profile & Logout */}
           <div className="flex items-center gap-3 pl-4 border-l border-white border-opacity-30">
             <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-teal-700 font-bold">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-              </svg>
+              {userRole === 'patient' && currentPatient ? (
+                currentPatient.name[0]
+              ) : (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                </svg>
+              )}
             </div>
             <div className="hidden md:block">
               <p className="text-sm font-semibold text-white">
-                {userRole === 'patient' ? 'Guest User' : 'Dr. Vineet Ranga'}
+                {userRole === 'patient' ? (currentPatient?.name || 'Guest User') : 'Dr. Vineet Ranga'}
               </p>
               <p className="text-xs text-white text-opacity-70">
                 {userRole === 'patient' ? 'Patient' : 'Receptionist'}

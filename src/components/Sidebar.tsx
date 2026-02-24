@@ -53,6 +53,15 @@ export default function Sidebar({ isOpen, currentPage, onNavigate, userRole }: S
         </svg>
       ),
     },
+    {
+      id: 'medical-history',
+      label: 'Medical History',
+      icon: (
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zm-2 6h-2v2h2v2h-2v2H9v-2H7v-2h2v-2H7v-2h2v-2h2v2h2v2z" />
+        </svg>
+      ),
+    },
   ]
 
   // Hospital Staff Menu Items
@@ -86,6 +95,15 @@ export default function Sidebar({ isOpen, currentPage, onNavigate, userRole }: S
       ),
       badge: activeEmergencies.length > 0 ? activeEmergencies.length : undefined,
       isEmergency: activeEmergencies.length > 0,
+    },
+    {
+      id: 'patient-medications',
+      label: 'Patient Medications',
+      icon: (
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M6 3h12v2H6V3zm6 4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2s2-.9 2-2V9c0-1.1-.9-2-2-2z" />
+        </svg>
+      ),
     },
   ]
 

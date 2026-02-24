@@ -2,6 +2,13 @@ import { createContext, useContext, useState, ReactNode } from 'react'
 
 export type UserRole = 'patient' | 'hospital' | null
 
+export interface Patient {
+  id: string
+  name: string
+  phone: string
+  email?: string
+}
+
 export interface Emergency {
   id: string
   type: string
@@ -14,6 +21,7 @@ export interface Emergency {
 
 export interface Appointment {
   id: string
+  patientId: string
   patientName: string
   patientPhone: string
   doctorId: string
@@ -25,9 +33,33 @@ export interface Appointment {
   delayReason?: string
 }
 
+export interface MedicalRecord {
+  id: string
+  patientId: string
+  condition: string
+  diagnosis: string
+  doctor: string
+  date: string
+  notes: string
+}
+
+export interface Medication {
+  id: string
+  patientId: string
+  name: string
+  dosage: string
+  frequency: string
+  startDate: string
+  endDate?: string
+  instructions: string
+  isActive: boolean
+}
+
 interface AppContextType {
   userRole: UserRole
   setUserRole: (role: UserRole) => void
+  currentPatient: Patient | null
+  setCurrentPatient: (patient: Patient | null) => void
   emergencies: Emergency[]
   addEmergency: (emergency: Omit<Emergency, 'id' | 'timestamp'>) => void
   resolveEmergency: (id: string) => void
@@ -35,12 +67,26 @@ interface AppContextType {
   addAppointment: (appointment: Omit<Appointment, 'id'>) => void
   updateAppointment: (id: string, updates: Partial<Appointment>) => void
   getActiveEmergencyDelay: () => number
+  getPatientAppointments: () => Appointment[]
+  isSlotBooked: (doctorId: string, date: string, time: string) => boolean
+  getBookedSlots: (doctorId: string, date: string) => string[]
+  medicalHistory: MedicalRecord[]
+  addMedicalRecord: (record: Omit<MedicalRecord, 'id'>) => void
+  medications: Medication[]
+  addMedication: (medication: Omit<Medication, 'id'>) => void
+  removeMedication: (id: string) => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [userRole, setUserRole] = useState<UserRole>(null)
+  const [currentPatient, setCurrentPatient] = useState<Patient | null>({
+    id: 'patient-1',
+    name: 'Rahul Sharma',
+    phone: '+91 98765 43210',
+    email: 'rahul.sharma@email.com'
+  })
   const [emergencies, setEmergencies] = useState<Emergency[]>([
     {
       id: '1',
@@ -56,6 +102,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [appointments, setAppointments] = useState<Appointment[]>([
     {
       id: '1',
+      patientId: 'patient-1',
       patientName: 'Rahul Sharma',
       patientPhone: '+91 98765 43210',
       doctorId: '1',
@@ -66,6 +113,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     {
       id: '2',
+      patientId: 'patient-2',
       patientName: 'Anita Patel',
       patientPhone: '+91 87654 32109',
       doctorId: '2',
@@ -76,6 +124,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     {
       id: '3',
+      patientId: 'patient-3',
       patientName: 'Vikram Singh',
       patientPhone: '+91 76543 21098',
       doctorId: '3',
@@ -86,8 +135,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     {
       id: '4',
-      patientName: 'Deepika Gupta',
-      patientPhone: '+91 65432 10987',
+      patientId: 'patient-1',
+      patientName: 'Rahul Sharma',
+      patientPhone: '+91 98765 43210',
       doctorId: '1',
       doctorName: 'Dr. Priya Sharma',
       date: '2026-02-23',
@@ -95,6 +145,70 @@ export function AppProvider({ children }: { children: ReactNode }) {
       status: 'confirmed',
     },
   ])
+
+  const [medicalHistory, setMedicalHistory] = useState<MedicalRecord[]>([
+    {
+      id: '1',
+      patientId: 'patient-1',
+      condition: 'Hypertension',
+      diagnosis: 'Essential Hypertension Stage 1',
+      doctor: 'Dr. Priya Sharma',
+      date: '2025-06-15',
+      notes: 'Blood pressure regularly above 140/90. Started on medication.'
+    },
+    {
+      id: '2',
+      patientId: 'patient-1',
+      condition: 'Type 2 Diabetes',
+      diagnosis: 'Type 2 Diabetes Mellitus',
+      doctor: 'Dr. Rajesh Kumar',
+      date: '2025-08-20',
+      notes: 'HbA1c at 7.2%. Diet and medication management recommended.'
+    }
+  ])
+
+  const [medications, setMedications] = useState<Medication[]>([
+    {
+      id: '1',
+      patientId: 'patient-1',
+      name: 'Metformin',
+      dosage: '500mg',
+      frequency: 'Twice daily',
+      startDate: '2025-08-20',
+      instructions: 'Take with meals',
+      isActive: true
+    },
+    {
+      id: '2',
+      patientId: 'patient-1',
+      name: 'Amlodipine',
+      dosage: '5mg',
+      frequency: 'Once daily',
+      startDate: '2025-06-15',
+      instructions: 'Take in the morning',
+      isActive: true
+    }
+  ])
+
+  const addMedicalRecord = (record: Omit<MedicalRecord, 'id'>) => {
+    const newRecord: MedicalRecord = {
+      ...record,
+      id: Date.now().toString()
+    }
+    setMedicalHistory((prev) => [newRecord, ...prev])
+  }
+
+  const addMedication = (medication: Omit<Medication, 'id'>) => {
+    const newMedication: Medication = {
+      ...medication,
+      id: Date.now().toString()
+    }
+    setMedications((prev) => [newMedication, ...prev])
+  }
+
+  const removeMedication = (id: string) => {
+    setMedications((prev) => prev.filter((m) => m.id !== id))
+  }
 
   const addEmergency = (emergency: Omit<Emergency, 'id' | 'timestamp'>) => {
     const newEmergency: Emergency = {
@@ -155,11 +269,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return Math.max(...activeEmergencies.map((e) => e.estimatedDelay))
   }
 
+  const getPatientAppointments = () => {
+    if (!currentPatient) return []
+    return appointments.filter((apt) => apt.patientId === currentPatient.id)
+  }
+
+  const isSlotBooked = (doctorId: string, date: string, time: string) => {
+    return appointments.some(
+      (apt) =>
+        apt.doctorId === doctorId &&
+        apt.date === date &&
+        apt.time === time &&
+        apt.status !== 'cancelled'
+    )
+  }
+
+  const getBookedSlots = (doctorId: string, date: string) => {
+    return appointments
+      .filter(
+        (apt) =>
+          apt.doctorId === doctorId &&
+          apt.date === date &&
+          apt.status !== 'cancelled'
+      )
+      .map((apt) => apt.time)
+  }
+
   return (
     <AppContext.Provider
       value={{
         userRole,
         setUserRole,
+        currentPatient,
+        setCurrentPatient,
         emergencies,
         addEmergency,
         resolveEmergency,
@@ -167,6 +309,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addAppointment,
         updateAppointment,
         getActiveEmergencyDelay,
+        getPatientAppointments,
+        isSlotBooked,
+        getBookedSlots,
+        medicalHistory,
+        addMedicalRecord,
+        medications,
+        addMedication,
+        removeMedication,
       }}
     >
       {children}

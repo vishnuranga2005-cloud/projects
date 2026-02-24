@@ -8,18 +8,20 @@ import { AppProvider, useApp } from './contexts/AppContext'
 import PatientDashboard from './pages/patient/PatientDashboard'
 import BookAppointment from './pages/patient/BookAppointment'
 import PatientAppointments from './pages/patient/PatientAppointments'
+import MedicalHistory from './pages/patient/MedicalHistory'
 
 // Hospital Pages
 import HospitalDashboard from './pages/hospital/HospitalDashboard'
 import ManageAppointments from './pages/hospital/ManageAppointments'
 import EmergencyManagement from './pages/hospital/EmergencyManagement'
+import PatientMedications from './pages/hospital/PatientMedications'
 
 // Shared
 import RoleSelection from './pages/RoleSelection'
 import FindDoctors from './pages/FindDoctors'
 
-type PatientPage = 'patient-dashboard' | 'book-appointment' | 'patient-appointments' | 'find-doctors'
-type HospitalPage = 'hospital-dashboard' | 'manage-appointments' | 'emergency-management'
+type PatientPage = 'patient-dashboard' | 'book-appointment' | 'patient-appointments' | 'find-doctors' | 'medical-history'
+type HospitalPage = 'hospital-dashboard' | 'manage-appointments' | 'emergency-management' | 'patient-medications'
 type Page = PatientPage | HospitalPage
 
 function AppContent() {
@@ -42,6 +44,8 @@ function AppContent() {
         return <PatientAppointments />
       case 'find-doctors':
         return <FindDoctors />
+      case 'medical-history':
+        return <MedicalHistory />
       default:
         return <PatientDashboard />
     }
@@ -55,6 +59,8 @@ function AppContent() {
         return <ManageAppointments />
       case 'emergency-management':
         return <EmergencyManagement />
+      case 'patient-medications':
+        return <PatientMedications />
       default:
         return <HospitalDashboard />
     }

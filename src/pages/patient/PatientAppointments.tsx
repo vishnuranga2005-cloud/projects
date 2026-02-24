@@ -2,9 +2,10 @@ import { useApp } from '../../contexts/AppContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 
 export default function PatientAppointments() {
-  const { appointments, emergencies } = useApp()
+  const { emergencies, getPatientAppointments } = useApp()
   const { t } = useLanguage()
 
+  const myAppointments = getPatientAppointments()
   const activeEmergencies = emergencies.filter((e) => e.status === 'active')
 
   const getStatusBadge = (status: string, delayMinutes?: number) => {
@@ -50,10 +51,10 @@ export default function PatientAppointments() {
     }
   }
 
-  const upcomingAppointments = appointments.filter(
+  const upcomingAppointments = myAppointments.filter(
     (apt) => apt.status === 'confirmed' || apt.status === 'pending' || apt.status === 'delayed'
   )
-  const pastAppointments = appointments.filter(
+  const pastAppointments = myAppointments.filter(
     (apt) => apt.status === 'completed' || apt.status === 'cancelled'
   )
 
