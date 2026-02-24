@@ -8,84 +8,84 @@ export default function FindDoctors() {
   const specializations = [
     'All',
     'Cardiologist',
-    'Dentist',
     'Dermatologist',
-    'General Practice',
+    'General Physician',
     'Neurologist',
+    'Orthopedic',
     'Pediatrician',
   ]
 
-  const cities = ['All Cities', 'New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix']
+  const cities = ['All Cities', 'Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Hyderabad']
 
   const doctors = [
     {
       id: 1,
-      name: 'Dr. Sarah Johnson',
+      name: 'Dr. Priya Sharma',
       specialization: 'Cardiologist',
-      city: 'New York',
+      city: 'Mumbai',
       rating: 4.8,
       reviews: 245,
-      fee: 150,
+      fee: 500,
       experience: '12 years',
       image: '👩‍⚕️',
       available: true,
     },
     {
       id: 2,
-      name: 'Dr. Michael Chen',
-      specialization: 'Dentist',
-      city: 'Los Angeles',
+      name: 'Dr. Rajesh Kumar',
+      specialization: 'Neurologist',
+      city: 'Delhi',
       rating: 4.6,
       reviews: 189,
-      fee: 100,
+      fee: 550,
       experience: '8 years',
       image: '👨‍⚕️',
       available: true,
     },
     {
       id: 3,
-      name: 'Dr. Emily Williams',
-      specialization: 'General Practice',
-      city: 'Chicago',
+      name: 'Dr. Meera Reddy',
+      specialization: 'Orthopedic',
+      city: 'Bangalore',
       rating: 4.9,
       reviews: 312,
-      fee: 80,
+      fee: 450,
       experience: '15 years',
       image: '👩‍⚕️',
-      available: false,
+      available: true,
     },
     {
       id: 4,
-      name: 'Dr. David Rodriguez',
-      specialization: 'Dermatologist',
-      city: 'Houston',
+      name: 'Dr. Amit Patel',
+      specialization: 'General Physician',
+      city: 'Chennai',
       rating: 4.7,
       reviews: 156,
-      fee: 120,
+      fee: 350,
       experience: '10 years',
       image: '👨‍⚕️',
       available: true,
     },
     {
       id: 5,
-      name: 'Dr. Lisa Anderson',
-      specialization: 'Pediatrician',
-      city: 'Phoenix',
+      name: 'Dr. Sunita Gupta',
+      specialization: 'Dermatologist',
+      city: 'Hyderabad',
       rating: 4.5,
       reviews: 178,
-      fee: 90,
+      fee: 400,
       experience: '9 years',
       image: '👩‍⚕️',
       available: true,
     },
     {
       id: 6,
-      name: 'Dr. James Wilson',
-      specialization: 'Neurologist',
-      city: 'New York',
+      name: 'Dr. Vikram Singh',
+      specialization: 'Pediatrician',
+      city: 'Mumbai',
       rating: 4.8,
       reviews: 267,
-      fee: 180,
+      fee: 400,
       experience: '14 years',
       image: '👨‍⚕️',
       available: true,
@@ -112,35 +112,36 @@ export default function FindDoctors() {
   })
 
   return (
-    <div className="p-8">
+    <div className="p-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900">Find Doctors & Clinics</h2>
-        <p className="text-gray-600 mt-2">Search and book appointments with healthcare professionals</p>
+      <div className="mb-10">
+        <h2 className="text-4xl font-bold text-gray-900">👨‍⚕️ Find Doctors & Specialists</h2>
+        <p className="text-gray-600 mt-2">Browse our network of qualified healthcare professionals</p>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="bg-gradient-to-br from-white to-cyan-50 rounded-2xl shadow-lg p-8 mb-10 border-t-4 border-teal-600">
+        <h3 className="text-lg font-bold text-gray-900 mb-6">🔍 Filter & Search</h3>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {/* Search */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Search Doctor or Clinic</label>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-3">Search Doctor or Clinic</label>
             <input
               type="text"
-              placeholder="Enter name or specialization..."
+              placeholder="Dr. Smith, Cardiologist..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border-2 border-teal-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
             />
           </div>
 
           {/* Specialization */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Specialization</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">Specialization</label>
             <select
               value={selectedSpecialization}
               onChange={(e) => setSelectedSpecialization(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border-2 border-teal-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
             >
               {specializations.map((spec) => (
                 <option key={spec} value={spec === 'All' ? '' : spec}>
@@ -152,11 +153,11 @@ export default function FindDoctors() {
 
           {/* City */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">City</label>
             <select
               value={selectedCity}
               onChange={(e) => setSelectedCity(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border-2 border-teal-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
             >
               {cities.map((city) => (
                 <option key={city} value={city === 'All Cities' ? '' : city}>
@@ -168,77 +169,80 @@ export default function FindDoctors() {
 
           {/* Search Button */}
           <div className="flex items-end">
-            <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors">
-              Search
+            <button className="w-full px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-lg hover:shadow-lg font-semibold transition-all duration-300 hover:scale-105">
+              🔍 Search
             </button>
           </div>
         </div>
       </div>
 
       {/* Results Count */}
-      <div className="mb-6">
-        <p className="text-gray-600">
-          Found <span className="font-bold text-gray-900">{filteredDoctors.length}</span> doctors
+      <div className="mb-8 flex items-center justify-between">
+        <p className="text-gray-600 font-semibold">
+          Found <span className="text-teal-600 text-2xl">{filteredDoctors.length}</span> doctors
         </p>
       </div>
 
       {/* Doctors Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {filteredDoctors.map((doctor) => (
-          <div key={doctor.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden">
+          <div key={doctor.id} className="bg-gradient-to-br from-white to-cyan-50 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2 border-t-4 border-teal-600">
             {/* Header with Avatar */}
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 pb-12 relative">
-              <div className="text-6xl">{doctor.image}</div>
+            <div className="bg-gradient-to-br from-teal-500 via-teal-600 to-cyan-600 p-8 pb-20 relative">
+              <div className="text-7xl mb-2">{doctor.image}</div>
+              <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-bold ${doctor.available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                {doctor.available ? '✓ Available' : '✗ Busy'}
+              </div>
             </div>
 
             {/* Content */}
-            <div className="p-6 pt-10">
-              <h3 className="text-lg font-bold text-gray-900">{doctor.name}</h3>
-              <p className="text-sm text-blue-600 font-semibold">{doctor.specialization}</p>
+            <div className="p-6 pt-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-1">{doctor.name}</h3>
+              <p className="text-teal-600 font-semibold mb-4">{doctor.specialization}</p>
 
               {/* Rating */}
-              <div className="flex items-center gap-2 mt-3 mb-3">
+              <div className="flex items-center gap-2 mb-4">
                 <div className="flex text-yellow-400">
                   {[...Array(5)].map((_, i) => (
-                    <span key={i} className={i < Math.floor(doctor.rating) ? '★' : '☆'}>
-                      ★
+                    <span key={i} className="text-lg">
+                      {i < Math.floor(doctor.rating) ? '★' : '☆'}
                     </span>
                   ))}
                 </div>
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-gray-600 font-medium">
                   {doctor.rating} ({doctor.reviews} reviews)
                 </span>
               </div>
 
               {/* Details */}
-              <div className="space-y-2 text-sm text-gray-600 mb-4 pb-4 border-b border-gray-200">
-                <div className="flex items-center gap-2">
-                  <span>📍</span>
-                  <span>{doctor.city}</span>
+              <div className="space-y-3 text-sm mb-6 pb-6 border-b-2 border-teal-200">
+                <div className="flex items-center gap-3 bg-teal-50 rounded-lg p-2">
+                  <span className="text-lg">📍</span>
+                  <span className="text-gray-700 font-medium">{doctor.city}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span>⏳</span>
-                  <span>{doctor.experience}</span>
+                <div className="flex items-center gap-3 bg-teal-50 rounded-lg p-2">
+                  <span className="text-lg">📅</span>
+                  <span className="text-gray-700 font-medium">{doctor.experience}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span>💰</span>
-                  <span>${doctor.fee} per consultation</span>
+                <div className="flex items-center gap-3 bg-teal-50 rounded-lg p-2">
+                  <span className="text-lg">💵</span>
+                  <span className="text-gray-700 font-bold">₹{doctor.fee} <span className="text-xs text-gray-500">per visit</span></span>
                 </div>
               </div>
 
-              {/* Status and Action */}
-              <div className="space-y-2">
+              {/* Action Buttons */}
+              <div className="space-y-3">
                 {doctor.available ? (
-                  <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors">
-                    Book Appointment
+                  <button className="w-full px-4 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-lg hover:shadow-lg font-semibold transition-all duration-200">
+                    ✓ Book Appointment
                   </button>
                 ) : (
-                  <button disabled className="w-full px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed font-medium">
-                    Not Available
+                  <button disabled className="w-full px-4 py-3 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed font-semibold">
+                    ✗ Not Available
                   </button>
                 )}
-                <button className="w-full px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 font-medium transition-colors">
-                  View Profile
+                <button className="w-full px-4 py-3 border-2 border-teal-600 text-teal-600 rounded-lg hover:bg-teal-50 font-semibold transition-colors">
+                  👁️ View Profile
                 </button>
               </div>
             </div>
@@ -247,8 +251,10 @@ export default function FindDoctors() {
       </div>
 
       {filteredDoctors.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">No doctors found matching your criteria.</p>
+        <div className="text-center py-16">
+          <div className="text-6xl mb-4">🔍</div>
+          <p className="text-gray-500 text-lg font-semibold">No doctors found matching your criteria.</p>
+          <p className="text-gray-400 mt-2">Try adjusting your filters</p>
         </div>
       )}
     </div>

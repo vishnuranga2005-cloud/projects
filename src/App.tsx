@@ -1,45 +1,101 @@
 import { useState } from 'react'
 import Navbar from './components/Navbar'
 import Sidebar from './components/Sidebar'
-import Dashboard from './pages/Dashboard'
+import { LanguageProvider } from './contexts/LanguageContext'
+import { AppProvider, useApp } from './contexts/AppContext'
+
+// Patient Pages
+import PatientDashboard from './pages/patient/PatientDashboard'
+import BookAppointment from './pages/patient/BookAppointment'
+import PatientAppointments from './pages/patient/PatientAppointments'
+
+// Hospital Pages
+import HospitalDashboard from './pages/hospital/HospitalDashboard'
+import ManageAppointments from './pages/hospital/ManageAppointments'
+import EmergencyManagement from './pages/hospital/EmergencyManagement'
+
+// Shared
+import RoleSelection from './pages/RoleSelection'
 import FindDoctors from './pages/FindDoctors'
-import MyAppointments from './pages/MyAppointments'
 
-type Page = 'dashboard' | 'find-doctors' | 'appointments'
+type PatientPage = 'patient-dashboard' | 'book-appointment' | 'patient-appointments' | 'find-doctors'
+type HospitalPage = 'hospital-dashboard' | 'manage-appointments' | 'emergency-management'
+type Page = PatientPage | HospitalPage
 
-function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('dashboard')
+function AppContent() {
+  const { userRole, setUserRole } = useApp()
+  const [currentPage, setCurrentPage] = useState<Page>('patient-dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
-  const renderPage = () => {
+  // Reset page when switching roles
+  const handlePageChange = (page: string) => {
+    setCurrentPage(page as Page)
+  }
+
+  const renderPatientPage = () => {
     switch (currentPage) {
-      case 'dashboard':
-        return <Dashboard />
+      case 'patient-dashboard':
+        return <PatientDashboard />
+      case 'book-appointment':
+        return <BookAppointment />
+      case 'patient-appointments':
+        return <PatientAppointments />
       case 'find-doctors':
         return <FindDoctors />
-      case 'appointments':
-        return <MyAppointments />
       default:
-        return <Dashboard />
+        return <PatientDashboard />
     }
   }
 
+  const renderHospitalPage = () => {
+    switch (currentPage) {
+      case 'hospital-dashboard':
+        return <HospitalDashboard />
+      case 'manage-appointments':
+        return <ManageAppointments />
+      case 'emergency-management':
+        return <EmergencyManagement />
+      default:
+        return <HospitalDashboard />
+    }
+  }
+
+  // Show role selection if no role selected
+  if (!userRole) {
+    return <RoleSelection />
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50 to-teal-50">
+      <Navbar 
+        onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
+        userRole={userRole}
+        onLogout={() => setUserRole(null)}
+      />
       
       <div className="flex">
         <Sidebar 
           isOpen={sidebarOpen} 
           currentPage={currentPage}
-          onNavigate={setCurrentPage}
+          onNavigate={handlePageChange}
+          userRole={userRole}
         />
         
         <main className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}>
-          {renderPage()}
+          {userRole === 'patient' ? renderPatientPage() : renderHospitalPage()}
         </main>
       </div>
     </div>
+  )
+}
+
+function App() {
+  return (
+    <LanguageProvider>
+      <AppProvider>
+        <AppContent />
+      </AppProvider>
+    </LanguageProvider>
   )
 }
 

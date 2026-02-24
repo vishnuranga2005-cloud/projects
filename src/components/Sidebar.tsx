@@ -1,76 +1,191 @@
+import { useApp } from '../contexts/AppContext'
+import { UserRole } from '../contexts/AppContext'
+
 interface SidebarProps {
   isOpen: boolean
   currentPage: string
-  onNavigate: (page: 'dashboard' | 'find-doctors' | 'appointments') => void
+  onNavigate: (page: string) => void
+  userRole: UserRole
 }
 
-export default function Sidebar({ isOpen, currentPage, onNavigate }: SidebarProps) {
-  const menuItems = [
+export default function Sidebar({ isOpen, currentPage, onNavigate, userRole }: SidebarProps) {
+  const { appointments, emergencies } = useApp()
+
+  const activeEmergencies = emergencies.filter((e) => e.status === 'active')
+  const pendingAppointments = appointments.filter((a) => a.status === 'pending').length
+  const todayAppointments = appointments.filter((a) => a.date === '2026-02-22').length
+
+  // Patient Menu Items
+  const patientMenuItems = [
     {
-      id: 'dashboard',
+      id: 'patient-dashboard',
       label: 'Dashboard',
       icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 16l4-4m0 0l4 4m-4-4V5" />
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+        </svg>
+      ),
+    },
+    {
+      id: 'book-appointment',
+      label: 'Book Appointment',
+      icon: (
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zm-7-5h5v5h-5z" />
+        </svg>
+      ),
+    },
+    {
+      id: 'patient-appointments',
+      label: 'My Appointments',
+      icon: (
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z" />
         </svg>
       ),
     },
     {
       id: 'find-doctors',
-      label: 'Find Doctors & Clinics',
+      label: 'Find Doctors',
       icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-      ),
-    },
-    {
-      id: 'appointments',
-      label: 'My Appointments',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
         </svg>
       ),
     },
   ]
 
+  // Hospital Staff Menu Items
+  const hospitalMenuItems = [
+    {
+      id: 'hospital-dashboard',
+      label: 'Dashboard',
+      icon: (
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M3 13h2v8H3zm4-8h2v16H7zm4-2h2v18h-2zm4-2h2v20h-2zm4 4h2v16h-2z" />
+        </svg>
+      ),
+    },
+    {
+      id: 'manage-appointments',
+      label: 'Manage Appointments',
+      icon: (
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z" />
+        </svg>
+      ),
+      badge: pendingAppointments > 0 ? pendingAppointments : undefined,
+    },
+    {
+      id: 'emergency-management',
+      label: 'Emergency Cases',
+      icon: (
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+        </svg>
+      ),
+      badge: activeEmergencies.length > 0 ? activeEmergencies.length : undefined,
+      isEmergency: activeEmergencies.length > 0,
+    },
+  ]
+
+  const menuItems = userRole === 'patient' ? patientMenuItems : hospitalMenuItems
+
   return (
     <aside
-      className={`fixed left-0 top-14 h-[calc(100vh-56px)] bg-white border-r border-gray-200 transition-all duration-300 z-30 ${
-        isOpen ? 'w-64' : '-translate-x-full w-64'
-      }`}
+      className={`fixed left-0 top-16 h-[calc(100vh-64px)] bg-gradient-to-b from-white to-slate-50 border-r-4 transition-all duration-300 z-30 shadow-xl ${
+        userRole === 'patient' ? 'border-teal-200' : 'border-cyan-200'
+      } ${isOpen ? 'w-64' : '-translate-x-full w-64'}`}
     >
-      <div className="p-6">
-        <div className="flex flex-col gap-2">
-          {menuItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => onNavigate(item.id as any)}
-              className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg transition-all ${
-                currentPage === item.id
-                  ? 'bg-blue-100 text-blue-600 font-semibold'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              {item.icon}
-              <span>{item.label}</span>
-            </button>
-          ))}
+      <div className="p-4 space-y-2 mt-4">
+        {/* Role Badge */}
+        <div className={`px-4 py-2 rounded-lg mb-4 ${
+          userRole === 'patient' 
+            ? 'bg-gradient-to-r from-teal-100 to-cyan-100 text-teal-700' 
+            : 'bg-gradient-to-r from-cyan-100 to-teal-100 text-cyan-700'
+        }`}>
+          <p className="text-xs font-bold uppercase tracking-wide">
+            {userRole === 'patient' ? 'Patient Portal' : 'Staff Portal'}
+          </p>
         </div>
+
+        {menuItems.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => onNavigate(item.id)}
+            className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all duration-200 font-medium border-l-4 relative ${
+              currentPage === item.id
+                ? userRole === 'patient'
+                  ? 'bg-gradient-to-r from-teal-50 to-cyan-50 text-teal-700 border-teal-600 shadow-md'
+                  : 'bg-gradient-to-r from-cyan-50 to-teal-50 text-cyan-700 border-cyan-600 shadow-md'
+                : 'text-gray-700 hover:bg-teal-50 hover:border-teal-400 border-transparent'
+            } ${(item as any).isEmergency ? 'animate-pulse' : ''}`}
+          >
+            <span className={(item as any).isEmergency ? 'text-red-500' : ''}>
+              {item.icon}
+            </span>
+            <span className="text-sm flex-1">{item.label}</span>
+            {(item as any).badge && (
+              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                (item as any).isEmergency 
+                  ? 'bg-red-500 text-white' 
+                  : 'bg-yellow-400 text-yellow-900'
+              }`}>
+                {(item as any).badge}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
 
-      {/* Sidebar Footer */}
-      <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-200">
-        <div className="space-y-3">
-          <button className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors text-left">
-            Settings
-          </button>
-          <button className="w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors text-left">
-            Logout
-          </button>
-        </div>
+      {/* Status Card */}
+      <div className="px-4 py-4 mt-4">
+        {userRole === 'patient' ? (
+          // Patient: Show waiting time
+          <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl p-4 shadow-sm border-2 border-teal-200">
+            <p className="text-xs text-teal-700 uppercase font-bold tracking-wide">Average Wait Time</p>
+            <p className="text-3xl font-bold text-teal-700 mt-2">
+              {15 + (activeEmergencies.length > 0 ? activeEmergencies[0].estimatedDelay : 0)} min
+            </p>
+            {activeEmergencies.length > 0 && (
+              <p className="text-xs text-red-500 mt-1">
+                +{activeEmergencies[0].estimatedDelay} min due to emergency
+              </p>
+            )}
+          </div>
+        ) : (
+          // Hospital: Show appointments status
+          <div className="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-xl p-4 shadow-sm border-2 border-cyan-200">
+            <p className="text-xs text-cyan-700 uppercase font-bold tracking-wide">Today's Overview</p>
+            <p className="text-2xl font-bold text-cyan-700 mt-2">{todayAppointments}</p>
+            <p className="text-xs text-cyan-600 mt-1">Appointments Today</p>
+            <div className="flex gap-2 mt-3">
+              <div className="flex-1 bg-yellow-100 text-yellow-700 text-xs font-bold px-2 py-1 rounded-lg text-center">
+                {pendingAppointments} Pending
+              </div>
+              <div className="flex-1 bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-lg text-center">
+                {appointments.filter((a) => a.status === 'confirmed').length} Confirmed
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Emergency Alert for Patient Sidebar */}
+      {userRole === 'patient' && activeEmergencies.length > 0 && (
+        <div className="px-4">
+          <div className="bg-red-50 border-2 border-red-300 rounded-xl p-3 animate-pulse">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+              </svg>
+              <p className="text-xs text-red-600 font-medium">
+                Emergency in progress - delays expected
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   )
 }
