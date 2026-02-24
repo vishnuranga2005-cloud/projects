@@ -29,6 +29,7 @@ export default function BookAppointment() {
   const [selectedTime, setSelectedTime] = useState('')
   const [patientName, setPatientName] = useState(currentPatient?.name || '')
   const [patientPhone, setPatientPhone] = useState(currentPatient?.phone || '')
+  const [paymentMethod, setPaymentMethod] = useState('')
   const [bookingSuccess, setBookingSuccess] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
 
@@ -91,9 +92,9 @@ export default function BookAppointment() {
   }, [bookedSlots, selectedTime, appointments, currentTime, selectedDate])
 
   const handleBooking = () => {
-    if (selectedDoctor && selectedDate && selectedTime && patientName && patientPhone && currentPatient) {
+    if (selectedDoctor && selectedDate && selectedTime && patientName && patientPhone && paymentMethod) {
       addAppointment({
-        patientId: currentPatient.id,
+        patientId: currentPatient?.id || `guest-${Date.now()}`,
         patientName,
         patientPhone,
         doctorId: selectedDoctor.id,
@@ -115,6 +116,7 @@ export default function BookAppointment() {
     setSelectedTime('')
     setPatientName('')
     setPatientPhone('')
+    setPaymentMethod('')
     setBookingSuccess(false)
   }
 
@@ -147,30 +149,30 @@ export default function BookAppointment() {
           )}
 
           <div className="bg-gray-50 rounded-xl p-6 mb-6 text-left">
-            <h3 className="font-semibold text-gray-800 mb-4">Booking Details</h3>
+            <h3 className="font-semibold text-gray-800 mb-4">{t('bookAppointment.bookingDetails') || 'Booking Details'}</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Patient:</span>
+                <span className="text-gray-500">{t('bookAppointment.patient') || 'Patient'}:</span>
                 <span className="font-medium text-gray-800">{patientName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Doctor:</span>
+                <span className="text-gray-500">{t('bookAppointment.doctor') || 'Doctor'}:</span>
                 <span className="font-medium text-gray-800">{selectedDoctor?.name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Specialty:</span>
+                <span className="text-gray-500">{t('bookAppointment.specialty') || 'Specialty'}:</span>
                 <span className="font-medium text-gray-800">{selectedDoctor?.specialty}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Date:</span>
+                <span className="text-gray-500">{t('bookAppointment.date') || 'Date'}:</span>
                 <span className="font-medium text-gray-800">{selectedDate}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Time:</span>
+                <span className="text-gray-500">{t('bookAppointment.time') || 'Time'}:</span>
                 <span className="font-medium text-gray-800">{selectedTime}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Consultation Fee:</span>
+                <span className="text-gray-500">{t('bookAppointment.consultationFee') || 'Consultation Fee'}:</span>
                 <span className="font-medium text-teal-600">₹{selectedDoctor?.fee}</span>
               </div>
             </div>
@@ -180,7 +182,7 @@ export default function BookAppointment() {
             onClick={resetForm}
             className="px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
           >
-            Book Another Appointment
+            {t('bookAppointment.bookAnother') || 'Book Another Appointment'}
           </button>
         </div>
       </div>
@@ -216,7 +218,7 @@ export default function BookAppointment() {
 
         {/* Progress Steps */}
         <div className="flex items-center justify-between mb-8 px-4">
-          {[1, 2, 3].map((s) => (
+          {[1, 2, 3, 4].map((s) => (
             <div key={s} className="flex items-center">
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${
@@ -227,9 +229,9 @@ export default function BookAppointment() {
               >
                 {s}
               </div>
-              {s < 3 && (
+              {s < 4 && (
                 <div
-                  className={`w-24 md:w-32 h-1 mx-2 ${
+                  className={`w-16 md:w-24 h-1 mx-2 ${
                     step > s ? 'bg-teal-500' : 'bg-gray-200'
                   }`}
                 ></div>
@@ -284,7 +286,7 @@ export default function BookAppointment() {
                     : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                 }`}
               >
-                Continue
+                {t('bookAppointment.continue') || 'Continue'}
               </button>
             </div>
           </div>
@@ -297,7 +299,7 @@ export default function BookAppointment() {
               {t('bookAppointment.selectDateTime') || 'Select Date & Time'}
             </h2>
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Select Date</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('bookAppointment.selectDate') || 'Select Date'}</label>
               <input
                 type="date"
                 min={today}
@@ -308,10 +310,10 @@ export default function BookAppointment() {
             </div>
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-gray-700">Select Time Slot</label>
+                <label className="block text-sm font-medium text-gray-700">{t('bookAppointment.selectTimeSlot') || 'Select Time Slot'}</label>
                 <span className="text-xs text-gray-400 flex items-center gap-1">
                   <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                  Live updates
+                  {t('bookAppointment.liveUpdates') || 'Live updates'}
                 </span>
               </div>
               {(bookedSlots.length > 0 || selectedDate === new Date().toISOString().split('T')[0]) && (
@@ -319,7 +321,7 @@ export default function BookAppointment() {
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
                   </svg>
-                  Unavailable slots are shown in red (booked) or gray (time passed)
+                  {t('bookAppointment.unavailableSlots') || 'Unavailable slots are shown in red (booked) or gray (time passed)'}
                 </p>
               )}
               <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
@@ -345,10 +347,10 @@ export default function BookAppointment() {
                     >
                       {time}
                       {isBooked && (
-                        <span className="block text-xs mt-1">Booked</span>
+                        <span className="block text-xs mt-1">{t('bookAppointment.booked') || 'Booked'}</span>
                       )}
                       {isPassed && !isBooked && (
-                        <span className="block text-xs mt-1">Passed</span>
+                        <span className="block text-xs mt-1">{t('bookAppointment.passed') || 'Passed'}</span>
                       )}
                     </button>
                   )
@@ -360,7 +362,7 @@ export default function BookAppointment() {
                 onClick={() => setStep(1)}
                 className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
               >
-                Back
+                {t('bookAppointment.back') || 'Back'}
               </button>
               <button
                 onClick={() => setStep(3)}
@@ -371,7 +373,7 @@ export default function BookAppointment() {
                     : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                 }`}
               >
-                Continue
+                {t('bookAppointment.continue') || 'Continue'}
               </button>
             </div>
           </div>
@@ -385,17 +387,17 @@ export default function BookAppointment() {
             </h2>
             <div className="space-y-4 max-w-md">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('bookAppointment.fullName') || 'Full Name'}</label>
                 <input
                   type="text"
                   value={patientName}
                   onChange={(e) => setPatientName(e.target.value)}
-                  placeholder="Enter your full name"
+                  placeholder={t('bookAppointment.enterFullName') || 'Enter your full name'}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('bookAppointment.phoneNumber') || 'Phone Number'}</label>
                 <input
                   type="tel"
                   value={patientPhone}
@@ -408,26 +410,26 @@ export default function BookAppointment() {
 
             {/* Booking Summary */}
             <div className="mt-6 bg-gray-50 rounded-xl p-4">
-              <h3 className="font-semibold text-gray-800 mb-3">Booking Summary</h3>
+              <h3 className="font-semibold text-gray-800 mb-3">{t('bookAppointment.bookingSummary') || 'Booking Summary'}</h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-500">Doctor:</span>
+                  <span className="text-gray-500">{t('bookAppointment.doctor') || 'Doctor'}:</span>
                   <p className="font-medium text-gray-800">{selectedDoctor?.name}</p>
                 </div>
                 <div>
-                  <span className="text-gray-500">Specialty:</span>
+                  <span className="text-gray-500">{t('bookAppointment.specialty') || 'Specialty'}:</span>
                   <p className="font-medium text-gray-800">{selectedDoctor?.specialty}</p>
                 </div>
                 <div>
-                  <span className="text-gray-500">Date:</span>
+                  <span className="text-gray-500">{t('bookAppointment.date') || 'Date'}:</span>
                   <p className="font-medium text-gray-800">{selectedDate}</p>
                 </div>
                 <div>
-                  <span className="text-gray-500">Time:</span>
+                  <span className="text-gray-500">{t('bookAppointment.time') || 'Time'}:</span>
                   <p className="font-medium text-gray-800">{selectedTime}</p>
                 </div>
                 <div>
-                  <span className="text-gray-500">Fee:</span>
+                  <span className="text-gray-500">{t('bookAppointment.fee') || 'Fee'}:</span>
                   <p className="font-medium text-teal-600">₹{selectedDoctor?.fee}</p>
                 </div>
               </div>
@@ -438,10 +440,10 @@ export default function BookAppointment() {
                 onClick={() => setStep(2)}
                 className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
               >
-                Back
+                {t('bookAppointment.back') || 'Back'}
               </button>
               <button
-                onClick={handleBooking}
+                onClick={() => setStep(4)}
                 disabled={!patientName || !patientPhone}
                 className={`px-6 py-3 rounded-lg font-medium transition-all ${
                   patientName && patientPhone
@@ -449,7 +451,102 @@ export default function BookAppointment() {
                     : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                 }`}
               >
-                Confirm Booking
+                {t('bookAppointment.continueToPayment') || 'Continue to Payment'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 4: Payment Method */}
+        {step === 4 && (
+          <div className="bg-white rounded-xl p-6 shadow-lg">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">
+              {t('bookAppointment.paymentMethod') || 'Select Payment Method'}
+            </h2>
+            
+            {/* Payment Amount */}
+            <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl p-4 mb-6 border border-teal-200">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600 font-medium">{t('bookAppointment.consultationFee') || 'Consultation Fee'}</span>
+                <span className="text-2xl font-bold text-teal-600">₹{selectedDoctor?.fee}</span>
+              </div>
+            </div>
+
+            {/* Payment Options */}
+            <div className="space-y-3">
+              {[
+                { id: 'upi', name: 'UPI', icon: '📱', description: 'Google Pay, PhonePe, Paytm' },
+                { id: 'card', name: 'Credit/Debit Card', icon: '💳', description: 'Visa, Mastercard, Rupay' },
+                { id: 'netbanking', name: 'Net Banking', icon: '🏦', description: 'All major banks supported' },
+                { id: 'cash', name: 'Pay at Hospital', icon: '💵', description: 'Pay cash at reception' },
+              ].map((method) => (
+                <button
+                  key={method.id}
+                  onClick={() => setPaymentMethod(method.id)}
+                  className={`w-full p-4 border-2 rounded-xl text-left transition-all flex items-center gap-4 ${
+                    paymentMethod === method.id
+                      ? 'border-teal-500 bg-teal-50'
+                      : 'border-gray-200 hover:border-teal-300'
+                  }`}
+                >
+                  <span className="text-2xl">{method.icon}</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-800">{method.name}</p>
+                    <p className="text-sm text-gray-500">{method.description}</p>
+                  </div>
+                  {paymentMethod === method.id && (
+                    <svg className="w-6 h-6 text-teal-600" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Payment Summary */}
+            <div className="mt-6 bg-gray-50 rounded-xl p-4">
+              <h3 className="font-semibold text-gray-800 mb-3">{t('bookAppointment.bookingSummary') || 'Booking Summary'}</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">{t('bookAppointment.doctor') || 'Doctor'}</span>
+                  <span className="font-medium text-gray-800">{selectedDoctor?.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">{t('bookAppointment.dateTime') || 'Date & Time'}</span>
+                  <span className="font-medium text-gray-800">{selectedDate} at {selectedTime}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">{t('bookAppointment.patient') || 'Patient'}</span>
+                  <span className="font-medium text-gray-800">{patientName}</span>
+                </div>
+                <hr className="my-2" />
+                <div className="flex justify-between text-base">
+                  <span className="font-semibold text-gray-700">{t('bookAppointment.totalAmount') || 'Total Amount'}</span>
+                  <span className="font-bold text-teal-600">₹{selectedDoctor?.fee}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-between">
+              <button
+                onClick={() => setStep(3)}
+                className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
+              >
+                {t('bookAppointment.back') || 'Back'}
+              </button>
+              <button
+                onClick={handleBooking}
+                disabled={!paymentMethod}
+                className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                  paymentMethod
+                    ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:shadow-lg'
+                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                {paymentMethod === 'cash' ? (t('bookAppointment.confirmBooking') || 'Confirm Booking') : (t('bookAppointment.payAndBook') || 'Pay & Book')}
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </button>
             </div>
           </div>

@@ -10,7 +10,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ onMenuClick, userRole, onLogout }: NavbarProps) {
-  const { language, setLanguage } = useLanguage()
+  const { language, setLanguage, t } = useLanguage()
   const { emergencies, currentPatient } = useApp()
   const [showProfileModal, setShowProfileModal] = useState(false)
 
@@ -53,9 +53,9 @@ export default function Navbar({ onMenuClick, userRole, onLogout }: NavbarProps)
               </svg>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">MediFlow Hospital</h1>
+              <h1 className="text-2xl font-bold text-white tracking-tight">{t('navbar.hospitalName') || 'MediFlow Hospital'}</h1>
               <p className="text-xs text-white text-opacity-80">
-                {userRole === 'patient' ? 'Patient Portal' : 'Hospital Staff Portal'}
+                {userRole === 'patient' ? (t('navbar.patientPortal') || 'Patient Portal') : (t('navbar.staffPortal') || 'Hospital Staff Portal')}
               </p>
             </div>
           </div>
@@ -75,7 +75,7 @@ export default function Navbar({ onMenuClick, userRole, onLogout }: NavbarProps)
           {/* Status Indicator */}
           <div className="hidden md:flex items-center gap-2 text-white">
             <span className="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-            <span className="text-sm font-medium">Online</span>
+            <span className="text-sm font-medium">{t('navbar.online') || 'Online'}</span>
           </div>
 
           {/* Language Selector */}
@@ -125,7 +125,7 @@ export default function Navbar({ onMenuClick, userRole, onLogout }: NavbarProps)
                   {userRole === 'patient' ? (currentPatient?.name || 'Guest User') : 'Dr. Vineet Ranga'}
                 </p>
                 <p className="text-xs text-white text-opacity-70">
-                  {userRole === 'patient' ? 'Click to view profile' : 'Receptionist'}
+                  {userRole === 'patient' ? (t('navbar.viewProfile') || 'Click to view profile') : (t('navbar.receptionist') || 'Receptionist')}
                 </p>
               </div>
             </button>
@@ -159,7 +159,7 @@ export default function Navbar({ onMenuClick, userRole, onLogout }: NavbarProps)
               {currentPatient.name[0].toUpperCase()}
             </div>
             <h2 className="text-2xl font-bold text-center">{currentPatient.name}</h2>
-            <p className="text-teal-100 text-center">Patient Profile</p>
+            <p className="text-teal-100 text-center">{t('navbar.patientProfile') || 'Patient Profile'}</p>
           </div>
           
           {/* Modal Body */}
@@ -167,22 +167,22 @@ export default function Navbar({ onMenuClick, userRole, onLogout }: NavbarProps)
             {/* Contact Information */}
             <div className="bg-gray-50 rounded-xl p-4">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                📱 Contact Information
+                📱 {t('navbar.contactInfo') || 'Contact Information'}
               </h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Phone:</span>
+                  <span className="text-gray-500">{t('navbar.phone') || 'Phone'}:</span>
                   <span className="font-medium text-gray-800">{currentPatient.phone}</span>
                 </div>
                 {currentPatient.email && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Email:</span>
+                    <span className="text-gray-500">{t('navbar.email') || 'Email'}:</span>
                     <span className="font-medium text-gray-800">{currentPatient.email}</span>
                   </div>
                 )}
                 {currentPatient.address && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Address:</span>
+                    <span className="text-gray-500">{t('navbar.address') || 'Address'}:</span>
                     <span className="font-medium text-gray-800 text-right max-w-[60%]">{currentPatient.address}</span>
                   </div>
                 )}
@@ -192,13 +192,13 @@ export default function Navbar({ onMenuClick, userRole, onLogout }: NavbarProps)
             {/* Personal Information */}
             <div className="bg-gray-50 rounded-xl p-4">
               <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                👤 Personal Information
+                👤 {t('navbar.personalInfo') || 'Personal Information'}
               </h3>
               <div className="space-y-2 text-sm">
                 {currentPatient.dateOfBirth && (
                   <>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Date of Birth:</span>
+                      <span className="text-gray-500">{t('navbar.dob') || 'Date of Birth'}:</span>
                       <span className="font-medium text-gray-800">
                         {new Date(currentPatient.dateOfBirth).toLocaleDateString('en-IN', { 
                           day: 'numeric', month: 'long', year: 'numeric' 
@@ -206,20 +206,20 @@ export default function Navbar({ onMenuClick, userRole, onLogout }: NavbarProps)
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Age:</span>
-                      <span className="font-medium text-gray-800">{calculateAge(currentPatient.dateOfBirth)} years</span>
+                      <span className="text-gray-500">{t('navbar.age') || 'Age'}:</span>
+                      <span className="font-medium text-gray-800">{calculateAge(currentPatient.dateOfBirth)} {t('navbar.years') || 'years'}</span>
                     </div>
                   </>
                 )}
                 {currentPatient.gender && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Gender:</span>
+                    <span className="text-gray-500">{t('navbar.gender') || 'Gender'}:</span>
                     <span className="font-medium text-gray-800 capitalize">{currentPatient.gender}</span>
                   </div>
                 )}
                 {currentPatient.bloodGroup && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Blood Group:</span>
+                    <span className="text-gray-500">{t('navbar.bloodGroup') || 'Blood Group'}:</span>
                     <span className="font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded">{currentPatient.bloodGroup}</span>
                   </div>
                 )}
@@ -230,18 +230,18 @@ export default function Navbar({ onMenuClick, userRole, onLogout }: NavbarProps)
             {(currentPatient.emergencyContact || currentPatient.emergencyPhone) && (
               <div className="bg-red-50 rounded-xl p-4 border border-red-200">
                 <h3 className="font-semibold text-red-700 mb-3 flex items-center gap-2">
-                  🚨 Emergency Contact
+                  🚨 {t('navbar.emergencyContact') || 'Emergency Contact'}
                 </h3>
                 <div className="space-y-2 text-sm">
                   {currentPatient.emergencyContact && (
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Name:</span>
+                      <span className="text-gray-500">{t('navbar.name') || 'Name'}:</span>
                       <span className="font-medium text-gray-800">{currentPatient.emergencyContact}</span>
                     </div>
                   )}
                   {currentPatient.emergencyPhone && (
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Phone:</span>
+                      <span className="text-gray-500">{t('navbar.phone') || 'Phone'}:</span>
                       <span className="font-medium text-gray-800">{currentPatient.emergencyPhone}</span>
                     </div>
                   )}
@@ -256,7 +256,7 @@ export default function Navbar({ onMenuClick, userRole, onLogout }: NavbarProps)
               onClick={() => setShowProfileModal(false)}
               className="w-full py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all"
             >
-              Close
+              {t('navbar.close') || 'Close'}
             </button>
           </div>
         </div>

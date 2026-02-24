@@ -34,11 +34,12 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
       if (value && typeof value === 'object' && k in value) {
         value = value[k]
       } else {
-        return key
+        // Return empty string so || fallback works
+        return ''
       }
     }
     
-    return typeof value === 'string' ? value : key
+    return typeof value === 'string' ? value : ''
   }
 
   return (

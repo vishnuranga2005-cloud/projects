@@ -12,6 +12,7 @@ import PatientDashboard from './pages/patient/PatientDashboard'
 import BookAppointment from './pages/patient/BookAppointment'
 import PatientAppointments from './pages/patient/PatientAppointments'
 import MedicalHistory from './pages/patient/MedicalHistory'
+import Settings from './pages/patient/Settings'
 
 // Hospital Pages
 import HospitalDashboard from './pages/hospital/HospitalDashboard'
@@ -24,12 +25,12 @@ import RoleSelection from './pages/RoleSelection'
 import FindDoctors from './pages/FindDoctors'
 import Login from './pages/Login'
 
-type PatientPage = 'patient-dashboard' | 'book-appointment' | 'patient-appointments' | 'find-doctors' | 'medical-history'
+type PatientPage = 'patient-dashboard' | 'book-appointment' | 'patient-appointments' | 'find-doctors' | 'medical-history' | 'settings'
 type HospitalPage = 'hospital-dashboard' | 'manage-appointments' | 'emergency-management' | 'patient-medications'
 type Page = PatientPage | HospitalPage
 
 function AppContent() {
-  const { userRole, setUserRole, setNavigateTo } = useApp()
+  const { userRole, setUserRole, setNavigateTo, setCurrentPatient } = useApp()
   const { user, isAuthenticated, isLoading, logout } = useAuth()
   const [currentPage, setCurrentPage] = useState<Page>('patient-dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -60,19 +61,45 @@ function AppContent() {
       setCheckingProfile(true);
       
       try {
-        const table = userRole === 'patient' ? 'patients' : 'hospital_staff';
-        const { data } = await supabase
-          .from(table)
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
-        
-        if (!data) {
-          setShowProfileSetup(true);
+        if (userRole === 'patient') {
+          const { data } = await supabase
+            .from('patients')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+          
+          if (data) {
+            // Load existing profile into context
+            setCurrentPatient({
+              id: data.user_id,
+              name: data.full_name,
+              phone: data.phone,
+              email: data.email,
+              dateOfBirth: data.date_of_birth || undefined,
+              gender: data.gender || undefined,
+              address: data.address || undefined,
+              bloodGroup: data.blood_group || undefined,
+              emergencyContact: data.emergency_contact_name || undefined,
+              emergencyPhone: data.emergency_contact_phone || undefined,
+            });
+            setShowProfileSetup(false);
+          } else {
+            setShowProfileSetup(true);
+          }
+        } else {
+          const { data } = await supabase
+            .from('hospital_staff')
+            .select('id')
+            .eq('user_id', user.id)
+            .single();
+          
+          if (!data) {
+            setShowProfileSetup(true);
+          }
         }
       } catch {
-        // If table doesn't exist yet, skip profile setup
-        setShowProfileSetup(false);
+        // If table doesn't exist yet, show profile setup
+        setShowProfileSetup(true);
       }
       
       setCheckingProfile(false);
@@ -102,6 +129,8 @@ function AppContent() {
         return <FindDoctors />
       case 'medical-history':
         return <MedicalHistory />
+      case 'settings':
+        return <Settings onLogout={handleLogout} />
       default:
         return <PatientDashboard />
     }

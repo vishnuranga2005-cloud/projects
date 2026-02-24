@@ -2,7 +2,7 @@ import { useApp } from '../../contexts/AppContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 
 export default function PatientAppointments() {
-  const { emergencies, getPatientAppointments } = useApp()
+  const { emergencies, getPatientAppointments, navigateTo } = useApp()
   const { t } = useLanguage()
 
   const myAppointments = getPatientAppointments()
@@ -112,7 +112,10 @@ export default function PatientAppointments() {
               </svg>
             </div>
             <p className="text-gray-500">No upcoming appointments</p>
-            <button className="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors">
+            <button 
+              onClick={() => navigateTo?.('book-appointment')}
+              className="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
+            >
               Book an Appointment
             </button>
           </div>

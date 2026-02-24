@@ -59,13 +59,6 @@ export default function Login({ onLoginSuccess: _onLoginSuccess }: LoginProps) {
     }
   };
 
-  const handleDemoLogin = () => {
-    setUser({
-      id: 'demo-user-' + Date.now(),
-      email: 'demo@mediflow.test',
-    });
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-white flex items-center justify-center p-6">
       <div className="max-w-md w-full">
@@ -156,19 +149,6 @@ export default function Login({ onLoginSuccess: _onLoginSuccess }: LoginProps) {
             >
               {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
             </button>
-          </div>
-
-          {/* Demo Mode Button */}
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <button
-              onClick={handleDemoLogin}
-              className="w-full py-3 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-all"
-            >
-              Continue with Demo Mode
-            </button>
-            <p className="text-xs text-gray-500 text-center mt-2">
-              Use demo mode to explore the app without registration
-            </p>
           </div>
         </div>
       </div>
