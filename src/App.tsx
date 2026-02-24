@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Navbar from './components/Navbar'
 import Sidebar from './components/Sidebar'
+import ProfileSetupModal from './components/ProfileSetupModal'
 import { LanguageProvider } from './contexts/LanguageContext'
 import { AppProvider, useApp } from './contexts/AppContext'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { supabase } from './lib/supabase'
 
 // Patient Pages
 import PatientDashboard from './pages/patient/PatientDashboard'
@@ -19,19 +22,72 @@ import PatientMedications from './pages/hospital/PatientMedications'
 // Shared
 import RoleSelection from './pages/RoleSelection'
 import FindDoctors from './pages/FindDoctors'
+import Login from './pages/Login'
 
 type PatientPage = 'patient-dashboard' | 'book-appointment' | 'patient-appointments' | 'find-doctors' | 'medical-history'
 type HospitalPage = 'hospital-dashboard' | 'manage-appointments' | 'emergency-management' | 'patient-medications'
 type Page = PatientPage | HospitalPage
 
 function AppContent() {
-  const { userRole, setUserRole } = useApp()
+  const { userRole, setUserRole, setNavigateTo } = useApp()
+  const { user, isAuthenticated, isLoading, logout } = useAuth()
   const [currentPage, setCurrentPage] = useState<Page>('patient-dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [showProfileSetup, setShowProfileSetup] = useState(false)
+  const [checkingProfile, setCheckingProfile] = useState(false)
 
   // Reset page when switching roles
   const handlePageChange = (page: string) => {
     setCurrentPage(page as Page)
+  }
+
+  // Register navigation function with context
+  useEffect(() => {
+    setNavigateTo(handlePageChange);
+  }, []);
+
+  // Check if user has profile when role is selected
+  useEffect(() => {
+    const checkProfile = async () => {
+      if (!user?.id || !userRole) return;
+      
+      // Skip profile check for demo users
+      if (user.id.startsWith('demo-')) {
+        setShowProfileSetup(false);
+        return;
+      }
+      
+      setCheckingProfile(true);
+      
+      try {
+        const table = userRole === 'patient' ? 'patients' : 'hospital_staff';
+        const { data } = await supabase
+          .from(table)
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (!data) {
+          setShowProfileSetup(true);
+        }
+      } catch {
+        // If table doesn't exist yet, skip profile setup
+        setShowProfileSetup(false);
+      }
+      
+      setCheckingProfile(false);
+    };
+
+    checkProfile();
+  }, [user?.id, userRole]);
+
+  const handleProfileComplete = () => {
+    setShowProfileSetup(false);
+  };
+
+  const handleLogout = async () => {
+    await logout()
+    setUserRole(null)
   }
 
   const renderPatientPage = () => {
@@ -66,6 +122,26 @@ function AppContent() {
     }
   }
 
+  // Show loading spinner while checking auth
+  if (isLoading || checkingProfile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <svg className="animate-spin h-12 w-12 text-teal-600 mx-auto mb-4" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show login if not authenticated
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={() => {}} />
+  }
+
   // Show role selection if no role selected
   if (!userRole) {
     return <RoleSelection />
@@ -73,10 +149,18 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50 to-teal-50">
+      {/* Profile Setup Modal */}
+      {showProfileSetup && (
+        <ProfileSetupModal 
+          role={userRole} 
+          onComplete={handleProfileComplete} 
+        />
+      )}
+      
       <Navbar 
         onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
         userRole={userRole}
-        onLogout={() => setUserRole(null)}
+        onLogout={handleLogout}
       />
       
       <div className="flex">
@@ -98,9 +182,11 @@ function AppContent() {
 function App() {
   return (
     <LanguageProvider>
-      <AppProvider>
-        <AppContent />
-      </AppProvider>
+      <AuthProvider>
+        <AppProvider>
+          <AppContent />
+        </AppProvider>
+      </AuthProvider>
     </LanguageProvider>
   )
 }

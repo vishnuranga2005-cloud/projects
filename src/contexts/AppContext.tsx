@@ -7,6 +7,12 @@ export interface Patient {
   name: string
   phone: string
   email?: string
+  dateOfBirth?: string
+  gender?: string
+  address?: string
+  bloodGroup?: string
+  emergencyContact?: string
+  emergencyPhone?: string
 }
 
 export interface Emergency {
@@ -55,6 +61,14 @@ export interface Medication {
   isActive: boolean
 }
 
+export interface SelectedDoctor {
+  id: string
+  name: string
+  specialization: string
+  fee: number
+  city: string
+}
+
 interface AppContextType {
   userRole: UserRole
   setUserRole: (role: UserRole) => void
@@ -75,18 +89,24 @@ interface AppContextType {
   medications: Medication[]
   addMedication: (medication: Omit<Medication, 'id'>) => void
   removeMedication: (id: string) => void
+  selectedDoctor: SelectedDoctor | null
+  setSelectedDoctor: (doctor: SelectedDoctor | null) => void
+  navigateTo: ((page: string) => void) | null
+  setNavigateTo: (fn: (page: string) => void) => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [userRole, setUserRole] = useState<UserRole>(null)
-  const [currentPatient, setCurrentPatient] = useState<Patient | null>({
-    id: 'patient-1',
-    name: 'Rahul Sharma',
-    phone: '+91 98765 43210',
-    email: 'rahul.sharma@email.com'
-  })
+  const [selectedDoctor, setSelectedDoctor] = useState<SelectedDoctor | null>(null)
+  const [navigateTo, setNavigateToState] = useState<((page: string) => void) | null>(null)
+  
+  const setNavigateTo = (fn: (page: string) => void) => {
+    setNavigateToState(() => fn)
+  }
+  
+  const [currentPatient, setCurrentPatient] = useState<Patient | null>(null)
   const [emergencies, setEmergencies] = useState<Emergency[]>([
     {
       id: '1',
@@ -317,6 +337,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         medications,
         addMedication,
         removeMedication,
+        selectedDoctor,
+        setSelectedDoctor,
+        navigateTo,
+        setNavigateTo,
       }}
     >
       {children}

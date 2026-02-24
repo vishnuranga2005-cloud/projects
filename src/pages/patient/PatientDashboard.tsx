@@ -19,13 +19,66 @@ export default function PatientDashboard() {
     <div className="p-6 space-y-6">
       {/* Welcome Header */}
       <div className="bg-gradient-to-r from-teal-600 to-cyan-600 rounded-2xl p-6 text-white shadow-lg">
-        <h1 className="text-2xl font-bold mb-2">
-          Welcome{currentPatient ? `, ${currentPatient.name}` : ' to MediFlow Hospital'}
-        </h1>
-        <p className="text-teal-100">
-          Book appointments and track your healthcare journey
-        </p>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold mb-2">
+              Welcome{currentPatient ? `, ${currentPatient.name}` : ' to MediFlow Hospital'}
+            </h1>
+            <p className="text-teal-100">
+              Book appointments and track your healthcare journey
+            </p>
+          </div>
+          {currentPatient && (
+            <div className="flex items-center gap-4 bg-white/10 rounded-xl p-4">
+              <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-teal-600 text-2xl font-bold">
+                {currentPatient.name[0].toUpperCase()}
+              </div>
+              <div className="text-sm">
+                <p className="font-semibold">{currentPatient.phone}</p>
+                {currentPatient.bloodGroup && (
+                  <p className="text-teal-200">Blood: <span className="bg-white/20 px-2 py-0.5 rounded text-white font-bold">{currentPatient.bloodGroup}</span></p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Patient Quick Info Card */}
+      {currentPatient && (currentPatient.dateOfBirth || currentPatient.gender || currentPatient.address) && (
+        <div className="bg-white rounded-xl p-4 shadow-lg border-l-4 border-purple-500">
+          <div className="flex flex-wrap gap-6 text-sm">
+            {currentPatient.dateOfBirth && (
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">🎂 DOB:</span>
+                <span className="font-medium text-gray-800">
+                  {new Date(currentPatient.dateOfBirth).toLocaleDateString('en-IN', { 
+                    day: 'numeric', month: 'short', year: 'numeric' 
+                  })}
+                </span>
+              </div>
+            )}
+            {currentPatient.gender && (
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">👤 Gender:</span>
+                <span className="font-medium text-gray-800 capitalize">{currentPatient.gender}</span>
+              </div>
+            )}
+            {currentPatient.address && (
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">📍 Address:</span>
+                <span className="font-medium text-gray-800">{currentPatient.address}</span>
+              </div>
+            )}
+            {currentPatient.emergencyContact && (
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">🚨 Emergency:</span>
+                <span className="font-medium text-gray-800">{currentPatient.emergencyContact} ({currentPatient.emergencyPhone})</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Emergency Alert Banner */}
       {activeEmergencies.length > 0 && (

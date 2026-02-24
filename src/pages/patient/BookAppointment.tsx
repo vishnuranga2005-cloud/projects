@@ -17,17 +17,27 @@ const timeSlots = [
 ]
 
 export default function BookAppointment() {
-  const { addAppointment, getActiveEmergencyDelay, currentPatient, getBookedSlots, appointments } = useApp()
+  const { addAppointment, getActiveEmergencyDelay, currentPatient, getBookedSlots, appointments, selectedDoctor: contextSelectedDoctor, setSelectedDoctor: setContextSelectedDoctor } = useApp()
   const { t } = useLanguage()
 
-  const [step, setStep] = useState(1)
-  const [selectedDoctor, setSelectedDoctor] = useState<typeof doctors[0] | null>(null)
+  // Check if we have a pre-selected doctor from context (from FindDoctors page)
+  const preSelectedDoctor = contextSelectedDoctor ? doctors.find(d => d.id === contextSelectedDoctor.id) : null
+
+  const [step, setStep] = useState(preSelectedDoctor ? 2 : 1)
+  const [selectedDoctor, setSelectedDoctor] = useState<typeof doctors[0] | null>(preSelectedDoctor)
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
   const [patientName, setPatientName] = useState(currentPatient?.name || '')
   const [patientPhone, setPatientPhone] = useState(currentPatient?.phone || '')
   const [bookingSuccess, setBookingSuccess] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
+
+  // Clear context selected doctor after using it
+  useEffect(() => {
+    if (contextSelectedDoctor) {
+      setContextSelectedDoctor(null)
+    }
+  }, [])
 
   const delay = getActiveEmergencyDelay()
 

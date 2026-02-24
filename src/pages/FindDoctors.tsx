@@ -1,9 +1,12 @@
 import { useState } from 'react'
+import { useApp, SelectedDoctor } from '../contexts/AppContext'
 
 export default function FindDoctors() {
+  const { setSelectedDoctor, navigateTo } = useApp()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSpecialization, setSelectedSpecialization] = useState('')
   const [selectedCity, setSelectedCity] = useState('')
+  const [viewingDoctor, setViewingDoctor] = useState<typeof doctors[0] | null>(null)
 
   const specializations = [
     'All',
@@ -233,7 +236,22 @@ export default function FindDoctors() {
               {/* Action Buttons */}
               <div className="space-y-3">
                 {doctor.available ? (
-                  <button className="w-full px-4 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-lg hover:shadow-lg font-semibold transition-all duration-200">
+                  <button 
+                    onClick={() => {
+                      const selectedDoc: SelectedDoctor = {
+                        id: String(doctor.id),
+                        name: doctor.name,
+                        specialization: doctor.specialization,
+                        fee: doctor.fee,
+                        city: doctor.city,
+                      };
+                      setSelectedDoctor(selectedDoc);
+                      if (navigateTo) {
+                        navigateTo('book-appointment');
+                      }
+                    }}
+                    className="w-full px-4 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-lg hover:shadow-lg font-semibold transition-all duration-200"
+                  >
                     ✓ Book Appointment
                   </button>
                 ) : (
@@ -241,7 +259,10 @@ export default function FindDoctors() {
                     ✗ Not Available
                   </button>
                 )}
-                <button className="w-full px-4 py-3 border-2 border-teal-600 text-teal-600 rounded-lg hover:bg-teal-50 font-semibold transition-colors">
+                <button 
+                  onClick={() => setViewingDoctor(doctor)}
+                  className="w-full px-4 py-3 border-2 border-teal-600 text-teal-600 rounded-lg hover:bg-teal-50 font-semibold transition-colors"
+                >
                   👁️ View Profile
                 </button>
               </div>
@@ -255,6 +276,106 @@ export default function FindDoctors() {
           <div className="text-6xl mb-4">🔍</div>
           <p className="text-gray-500 text-lg font-semibold">No doctors found matching your criteria.</p>
           <p className="text-gray-400 mt-2">Try adjusting your filters</p>
+        </div>
+      )}
+
+      {/* Doctor Profile Modal */}
+      {viewingDoctor && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-teal-600 to-cyan-600 p-6 text-white relative">
+              <button 
+                onClick={() => setViewingDoctor(null)}
+                className="absolute top-4 right-4 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+              >
+                ✕
+              </button>
+              <div className="text-6xl mb-4">{viewingDoctor.image}</div>
+              <h2 className="text-2xl font-bold">{viewingDoctor.name}</h2>
+              <p className="text-teal-100">{viewingDoctor.specialization}</p>
+            </div>
+            
+            {/* Modal Body */}
+            <div className="p-6 space-y-4">
+              {/* Rating */}
+              <div className="flex items-center gap-2">
+                <div className="flex text-yellow-400">
+                  {[...Array(5)].map((_, i) => (
+                    <span key={i} className="text-xl">
+                      {i < Math.floor(viewingDoctor.rating) ? '★' : '☆'}
+                    </span>
+                  ))}
+                </div>
+                <span className="text-gray-600 font-semibold">
+                  {viewingDoctor.rating} ({viewingDoctor.reviews} reviews)
+                </span>
+              </div>
+              
+              {/* Details Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-gray-500 text-sm">Location</p>
+                  <p className="font-semibold text-gray-800">📍 {viewingDoctor.city}</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-gray-500 text-sm">Experience</p>
+                  <p className="font-semibold text-gray-800">📅 {viewingDoctor.experience}</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-gray-500 text-sm">Consultation Fee</p>
+                  <p className="font-semibold text-green-600">💵 ₹{viewingDoctor.fee}</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-gray-500 text-sm">Availability</p>
+                  <p className={`font-semibold ${viewingDoctor.available ? 'text-green-600' : 'text-red-500'}`}>
+                    {viewingDoctor.available ? '✓ Available' : '✗ Not Available'}
+                  </p>
+                </div>
+              </div>
+              
+              {/* About Section */}
+              <div className="bg-teal-50 rounded-xl p-4">
+                <h3 className="font-semibold text-gray-800 mb-2">About</h3>
+                <p className="text-gray-600 text-sm">
+                  {viewingDoctor.name} is a highly experienced {viewingDoctor.specialization} 
+                  with {viewingDoctor.experience} of practice in {viewingDoctor.city}. 
+                  Known for providing excellent patient care and comprehensive medical consultations.
+                </p>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <button 
+                  onClick={() => setViewingDoctor(null)}
+                  className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 font-semibold transition-colors"
+                >
+                  Close
+                </button>
+                {viewingDoctor.available && (
+                  <button 
+                    onClick={() => {
+                      const selectedDoc: SelectedDoctor = {
+                        id: String(viewingDoctor.id),
+                        name: viewingDoctor.name,
+                        specialization: viewingDoctor.specialization,
+                        fee: viewingDoctor.fee,
+                        city: viewingDoctor.city,
+                      };
+                      setSelectedDoctor(selectedDoc);
+                      setViewingDoctor(null);
+                      if (navigateTo) {
+                        navigateTo('book-appointment');
+                      }
+                    }}
+                    className="flex-1 px-4 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-lg hover:shadow-lg font-semibold transition-all"
+                  >
+                    Book Appointment
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
