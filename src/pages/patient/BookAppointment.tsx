@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useApp } from '../../contexts/AppContext'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { initiateRazorpayPayment, getRazorpayKeyId } from '../../lib/razorpay'
 
 const doctors = [
   { id: '1', name: 'Dr. Priya Sharma', specialty: 'Cardiologist', fee: 500, location: 'Mumbai' },
@@ -32,6 +33,21 @@ export default function BookAppointment() {
   const [paymentMethod, setPaymentMethod] = useState('')
   const [bookingSuccess, setBookingSuccess] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
+  
+  // Payment flow states
+  const [paymentStep, setPaymentStep] = useState<'select' | 'details' | 'processing' | 'complete' | 'error'>('select')
+  const [paymentError, setPaymentError] = useState('')
+  const [paymentId, setPaymentId] = useState('')
+  const [upiId, setUpiId] = useState('')
+  const [cardDetails, setCardDetails] = useState({
+    cardNumber: '',
+    cardName: '',
+    expiry: '',
+    cvv: ''
+  })
+  
+  // Check if Razorpay is configured
+  const isRazorpayConfigured = getRazorpayKeyId() && getRazorpayKeyId() !== 'rzp_test_XXXXXXXXXXXX'
 
   // Clear context selected doctor after using it
   useEffect(() => {
@@ -91,22 +107,180 @@ export default function BookAppointment() {
     }
   }, [bookedSlots, selectedTime, appointments, currentTime, selectedDate])
 
-  const handleBooking = () => {
-    if (selectedDoctor && selectedDate && selectedTime && patientName && patientPhone && paymentMethod) {
-      addAppointment({
-        patientId: currentPatient?.id || `guest-${Date.now()}`,
+  // Handle payment processing and booking
+  const processPayment = () => {
+    if (!selectedDoctor) return
+    
+    // If Razorpay is configured, use it
+    if (isRazorpayConfigured) {
+      initiateRazorpayPayment({
+        amount: selectedDoctor.fee,
         patientName,
         patientPhone,
-        doctorId: selectedDoctor.id,
         doctorName: selectedDoctor.name,
-        date: selectedDate,
-        time: selectedTime,
-        status: delay > 0 ? 'delayed' : 'pending',
-        delayMinutes: delay > 0 ? delay : undefined,
-        delayReason: delay > 0 ? 'Emergency cases in hospital' : undefined,
+        appointmentDetails: `${selectedDate} at ${selectedTime}`,
+        onSuccess: (pId, orderId) => {
+          setPaymentId(pId)
+          setPaymentStep('complete')
+          // After showing complete, proceed to booking
+          setTimeout(() => {
+            addAppointment({
+              patientId: currentPatient?.id || `guest-${Date.now()}`,
+              patientName,
+              patientPhone,
+              doctorId: selectedDoctor.id,
+              doctorName: selectedDoctor.name,
+              date: selectedDate,
+              time: selectedTime,
+              status: delay > 0 ? 'delayed' : 'pending',
+              delayMinutes: delay > 0 ? delay : undefined,
+              delayReason: delay > 0 ? 'Emergency cases in hospital' : undefined,
+              paymentId: pId,
+              paymentStatus: 'paid',
+            })
+            setBookingSuccess(true)
+          }, 1500)
+        },
+        onFailure: (error) => {
+          setPaymentError(error)
+          setPaymentStep('error')
+        },
+        onDismiss: () => {
+          setPaymentStep('select')
+        },
       })
-      setBookingSuccess(true)
+    } else {
+      // Fallback: Simulate payment processing (for demo/development)
+      setPaymentStep('processing')
+      setTimeout(() => {
+        setPaymentStep('complete')
+        setTimeout(() => {
+          if (selectedDoctor && selectedDate && selectedTime && patientName && patientPhone && paymentMethod) {
+            addAppointment({
+              patientId: currentPatient?.id || `guest-${Date.now()}`,
+              patientName,
+              patientPhone,
+              doctorId: selectedDoctor.id,
+              doctorName: selectedDoctor.name,
+              date: selectedDate,
+              time: selectedTime,
+              status: delay > 0 ? 'delayed' : 'pending',
+              delayMinutes: delay > 0 ? delay : undefined,
+              delayReason: delay > 0 ? 'Emergency cases in hospital' : undefined,
+            })
+            setBookingSuccess(true)
+          }
+        }, 1500)
+      }, 2500)
     }
+  }
+  
+  // Open Razorpay checkout directly (for UPI/Card via Razorpay)
+  const openRazorpayCheckout = () => {
+    if (!selectedDoctor) return
+    
+    if (isRazorpayConfigured) {
+      initiateRazorpayPayment({
+        amount: selectedDoctor.fee,
+        patientName,
+        patientPhone,
+        doctorName: selectedDoctor.name,
+        appointmentDetails: `${selectedDate} at ${selectedTime}`,
+        onSuccess: (pId, orderId) => {
+          setPaymentId(pId)
+          setPaymentStep('complete')
+          setTimeout(() => {
+            addAppointment({
+              patientId: currentPatient?.id || `guest-${Date.now()}`,
+              patientName,
+              patientPhone,
+              doctorId: selectedDoctor.id,
+              doctorName: selectedDoctor.name,
+              date: selectedDate,
+              time: selectedTime,
+              status: delay > 0 ? 'delayed' : 'pending',
+              delayMinutes: delay > 0 ? delay : undefined,
+              delayReason: delay > 0 ? 'Emergency cases in hospital' : undefined,
+              paymentId: pId,
+              paymentStatus: 'paid',
+            })
+            setBookingSuccess(true)
+          }, 1500)
+        },
+        onFailure: (error) => {
+          setPaymentError(error)
+          setPaymentStep('error')
+        },
+        onDismiss: () => {
+          setPaymentStep('select')
+        },
+      })
+    } else {
+      // If Razorpay not configured, show details form for demo
+      setPaymentStep('details')
+    }
+  }
+
+  const handleBooking = () => {
+    if (selectedDoctor && selectedDate && selectedTime && patientName && patientPhone && paymentMethod) {
+      // For cash payment, book directly
+      if (paymentMethod === 'cash') {
+        addAppointment({
+          patientId: currentPatient?.id || `guest-${Date.now()}`,
+          patientName,
+          patientPhone,
+          doctorId: selectedDoctor.id,
+          doctorName: selectedDoctor.name,
+          date: selectedDate,
+          time: selectedTime,
+          status: delay > 0 ? 'delayed' : 'pending',
+          delayMinutes: delay > 0 ? delay : undefined,
+          delayReason: delay > 0 ? 'Emergency cases in hospital' : undefined,
+        })
+        setBookingSuccess(true)
+      } else if (paymentMethod === 'upi' || paymentMethod === 'card') {
+        // For UPI and Card, open Razorpay checkout (or fallback form)
+        openRazorpayCheckout()
+      } else {
+        // For Net Banking, show bank selection
+        setPaymentStep('details')
+      }
+    }
+  }
+
+  // Validate UPI ID format
+  const isValidUpi = (upi: string) => {
+    return /^[\w.-]+@[\w]+$/.test(upi)
+  }
+
+  // Validate card details
+  const isValidCard = () => {
+    const { cardNumber, cardName, expiry, cvv } = cardDetails
+    return cardNumber.replace(/\s/g, '').length === 16 &&
+           cardName.trim().length >= 3 &&
+           /^\d{2}\/\d{2}$/.test(expiry) &&
+           cvv.length >= 3
+  }
+
+  // Format card number with spaces
+  const formatCardNumber = (value: string) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '')
+    const matches = v.match(/\d{4,16}/g)
+    const match = (matches && matches[0]) || ''
+    const parts = []
+    for (let i = 0, len = match.length; i < len; i += 4) {
+      parts.push(match.substring(i, i + 4))
+    }
+    return parts.length ? parts.join(' ') : value
+  }
+
+  // Format expiry date
+  const formatExpiry = (value: string) => {
+    const v = value.replace(/\D/g, '')
+    if (v.length >= 2) {
+      return v.substring(0, 2) + '/' + v.substring(2, 4)
+    }
+    return v
   }
 
   const resetForm = () => {
@@ -118,6 +292,16 @@ export default function BookAppointment() {
     setPatientPhone('')
     setPaymentMethod('')
     setBookingSuccess(false)
+    setPaymentStep('select')
+    setPaymentError('')
+    setPaymentId('')
+    setUpiId('')
+    setCardDetails({
+      cardNumber: '',
+      cardName: '',
+      expiry: '',
+      cvv: ''
+    })
   }
 
   // Get minimum date (today)
@@ -459,96 +643,433 @@ export default function BookAppointment() {
 
         {/* Step 4: Payment Method */}
         {step === 4 && (
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">
-              {t('bookAppointment.paymentMethod') || 'Select Payment Method'}
-            </h2>
-            
-            {/* Payment Amount */}
-            <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl p-4 mb-6 border border-teal-200">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600 font-medium">{t('bookAppointment.consultationFee') || 'Consultation Fee'}</span>
-                <span className="text-2xl font-bold text-teal-600">₹{selectedDoctor?.fee}</span>
-              </div>
-            </div>
-
-            {/* Payment Options */}
-            <div className="space-y-3">
-              {[
-                { id: 'upi', name: 'UPI', icon: '📱', description: 'Google Pay, PhonePe, Paytm' },
-                { id: 'card', name: 'Credit/Debit Card', icon: '💳', description: 'Visa, Mastercard, Rupay' },
-                { id: 'netbanking', name: 'Net Banking', icon: '🏦', description: 'All major banks supported' },
-                { id: 'cash', name: 'Pay at Hospital', icon: '💵', description: 'Pay cash at reception' },
-              ].map((method) => (
-                <button
-                  key={method.id}
-                  onClick={() => setPaymentMethod(method.id)}
-                  className={`w-full p-4 border-2 rounded-xl text-left transition-all flex items-center gap-4 ${
-                    paymentMethod === method.id
-                      ? 'border-teal-500 bg-teal-50'
-                      : 'border-gray-200 hover:border-teal-300'
-                  }`}
-                >
-                  <span className="text-2xl">{method.icon}</span>
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-800">{method.name}</p>
-                    <p className="text-sm text-gray-500">{method.description}</p>
+          <div className="bg-white rounded-xl p-6 shadow-lg relative">
+            {/* Processing Payment Overlay */}
+            {paymentStep === 'processing' && (
+              <div className="absolute inset-0 bg-white/95 rounded-xl flex flex-col items-center justify-center z-10">
+                <div className="relative">
+                  <div className="w-20 h-20 border-4 border-teal-200 rounded-full animate-spin">
+                    <div className="absolute top-0 left-0 w-20 h-20 border-4 border-transparent border-t-teal-600 rounded-full"></div>
                   </div>
-                  {paymentMethod === method.id && (
-                    <svg className="w-6 h-6 text-teal-600" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                    </svg>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            {/* Payment Summary */}
-            <div className="mt-6 bg-gray-50 rounded-xl p-4">
-              <h3 className="font-semibold text-gray-800 mb-3">{t('bookAppointment.bookingSummary') || 'Booking Summary'}</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">{t('bookAppointment.doctor') || 'Doctor'}</span>
-                  <span className="font-medium text-gray-800">{selectedDoctor?.name}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">{t('bookAppointment.dateTime') || 'Date & Time'}</span>
-                  <span className="font-medium text-gray-800">{selectedDate} at {selectedTime}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">{t('bookAppointment.patient') || 'Patient'}</span>
-                  <span className="font-medium text-gray-800">{patientName}</span>
-                </div>
-                <hr className="my-2" />
-                <div className="flex justify-between text-base">
-                  <span className="font-semibold text-gray-700">{t('bookAppointment.totalAmount') || 'Total Amount'}</span>
-                  <span className="font-bold text-teal-600">₹{selectedDoctor?.fee}</span>
+                <h3 className="text-xl font-bold text-gray-800 mt-6">Processing Payment</h3>
+                <p className="text-gray-500 mt-2">Please wait while we process your payment...</p>
+                <div className="flex items-center gap-2 mt-4 text-sm text-gray-400">
+                  <svg className="w-4 h-4 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z"/>
+                  </svg>
+                  Do not close or refresh this page
                 </div>
               </div>
-            </div>
+            )}
 
-            <div className="mt-6 flex justify-between">
-              <button
-                onClick={() => setStep(3)}
-                className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
-              >
-                {t('bookAppointment.back') || 'Back'}
-              </button>
-              <button
-                onClick={handleBooking}
-                disabled={!paymentMethod}
-                className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
-                  paymentMethod
-                    ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:shadow-lg'
-                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                {paymentMethod === 'cash' ? (t('bookAppointment.confirmBooking') || 'Confirm Booking') : (t('bookAppointment.payAndBook') || 'Pay & Book')}
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </button>
-            </div>
+            {/* Payment Complete Overlay */}
+            {paymentStep === 'complete' && (
+              <div className="absolute inset-0 bg-white/95 rounded-xl flex flex-col items-center justify-center z-10">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
+                  <svg className="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-green-600 mt-6">Payment Successful!</h3>
+                <p className="text-gray-500 mt-2">Completing your booking...</p>
+                {paymentId && (
+                  <p className="text-xs text-gray-400 mt-2">Payment ID: {paymentId}</p>
+                )}
+              </div>
+            )}
+
+            {/* Payment Error Overlay */}
+            {paymentStep === 'error' && (
+              <div className="absolute inset-0 bg-white/95 rounded-xl flex flex-col items-center justify-center z-10 p-6">
+                <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
+                  <svg className="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-red-600 mt-6">Payment Failed</h3>
+                <p className="text-gray-500 mt-2 text-center max-w-sm">{paymentError || 'Something went wrong. Please try again.'}</p>
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={() => {
+                      setPaymentStep('select')
+                      setPaymentError('')
+                    }}
+                    className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
+                  >
+                    Change Method
+                  </button>
+                  <button
+                    onClick={() => {
+                      setPaymentStep('select')
+                      setPaymentError('')
+                      handleBooking()
+                    }}
+                    className="px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Payment Method Selection */}
+            {paymentStep === 'select' && (
+              <>
+                <h2 className="text-lg font-bold text-gray-800 mb-4">
+                  {t('bookAppointment.paymentMethod') || 'Select Payment Method'}
+                </h2>
+                
+                {/* Razorpay Badge */}
+                {isRazorpayConfigured && (
+                  <div className="flex items-center gap-2 mb-4 text-sm text-gray-500">
+                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+                    </svg>
+                    Secured by Razorpay - PCI DSS Compliant
+                  </div>
+                )}
+                
+                {/* Demo Mode Notice */}
+                {!isRazorpayConfigured && (
+                  <div className="flex items-center gap-2 mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                    </svg>
+                    Demo Mode - Configure Razorpay keys for real payments
+                  </div>
+                )}
+                
+                {/* Payment Amount */}
+                <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl p-4 mb-6 border border-teal-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 font-medium">{t('bookAppointment.consultationFee') || 'Consultation Fee'}</span>
+                    <span className="text-2xl font-bold text-teal-600">₹{selectedDoctor?.fee}</span>
+                  </div>
+                </div>
+
+                {/* Payment Options */}
+                <div className="space-y-3">
+                  {[
+                    { id: 'upi', name: 'UPI', icon: '📱', description: 'Google Pay, PhonePe, Paytm' },
+                    { id: 'card', name: 'Credit/Debit Card', icon: '💳', description: 'Visa, Mastercard, Rupay' },
+                    { id: 'netbanking', name: 'Net Banking', icon: '🏦', description: 'All major banks supported' },
+                    { id: 'cash', name: 'Pay at Hospital', icon: '💵', description: 'Pay cash at reception' },
+                  ].map((method) => (
+                    <button
+                      key={method.id}
+                      onClick={() => setPaymentMethod(method.id)}
+                      className={`w-full p-4 border-2 rounded-xl text-left transition-all flex items-center gap-4 ${
+                        paymentMethod === method.id
+                          ? 'border-teal-500 bg-teal-50'
+                          : 'border-gray-200 hover:border-teal-300'
+                      }`}
+                    >
+                      <span className="text-2xl">{method.icon}</span>
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-800">{method.name}</p>
+                        <p className="text-sm text-gray-500">{method.description}</p>
+                      </div>
+                      {paymentMethod === method.id && (
+                        <svg className="w-6 h-6 text-teal-600" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Payment Summary */}
+                <div className="mt-6 bg-gray-50 rounded-xl p-4">
+                  <h3 className="font-semibold text-gray-800 mb-3">{t('bookAppointment.bookingSummary') || 'Booking Summary'}</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">{t('bookAppointment.doctor') || 'Doctor'}</span>
+                      <span className="font-medium text-gray-800">{selectedDoctor?.name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">{t('bookAppointment.dateTime') || 'Date & Time'}</span>
+                      <span className="font-medium text-gray-800">{selectedDate} at {selectedTime}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">{t('bookAppointment.patient') || 'Patient'}</span>
+                      <span className="font-medium text-gray-800">{patientName}</span>
+                    </div>
+                    <hr className="my-2" />
+                    <div className="flex justify-between text-base">
+                      <span className="font-semibold text-gray-700">{t('bookAppointment.totalAmount') || 'Total Amount'}</span>
+                      <span className="font-bold text-teal-600">₹{selectedDoctor?.fee}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex justify-between">
+                  <button
+                    onClick={() => setStep(3)}
+                    className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
+                  >
+                    {t('bookAppointment.back') || 'Back'}
+                  </button>
+                  <button
+                    onClick={handleBooking}
+                    disabled={!paymentMethod}
+                    className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                      paymentMethod
+                        ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:shadow-lg'
+                        : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    {paymentMethod === 'cash' ? (t('bookAppointment.confirmBooking') || 'Confirm Booking') : (t('bookAppointment.proceed') || 'Proceed')}
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* UPI Payment Details */}
+            {paymentStep === 'details' && paymentMethod === 'upi' && (
+              <>
+                <div className="flex items-center gap-3 mb-6">
+                  <button
+                    onClick={() => setPaymentStep('select')}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-all"
+                  >
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <h2 className="text-lg font-bold text-gray-800">UPI Payment</h2>
+                </div>
+
+                {/* Payment Amount */}
+                <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl p-4 mb-6 border border-teal-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 font-medium">Amount to Pay</span>
+                    <span className="text-2xl font-bold text-teal-600">₹{selectedDoctor?.fee}</span>
+                  </div>
+                </div>
+
+                {/* UPI ID Input */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Enter UPI ID</label>
+                  <input
+                    type="text"
+                    value={upiId}
+                    onChange={(e) => setUpiId(e.target.value.toLowerCase())}
+                    placeholder="yourname@upi"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-lg"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">Enter your UPI ID (e.g., 9876543210@paytm, user@okicici)</p>
+                </div>
+
+                {/* Supported UPI Apps */}
+                <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                  <p className="text-sm text-gray-600 mb-3">Supported UPI Apps:</p>
+                  <div className="flex flex-wrap gap-3">
+                    {['Google Pay', 'PhonePe', 'Paytm', 'BHIM', 'Amazon Pay'].map(app => (
+                      <span key={app} className="px-3 py-1 bg-white border rounded-full text-sm text-gray-600">{app}</span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex justify-between">
+                  <button
+                    onClick={() => {
+                      setPaymentStep('select')
+                      setUpiId('')
+                    }}
+                    className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={processPayment}
+                    disabled={!isValidUpi(upiId)}
+                    className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                      isValidUpi(upiId)
+                        ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:shadow-lg'
+                        : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    Pay ₹{selectedDoctor?.fee}
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Card Payment Details */}
+            {paymentStep === 'details' && paymentMethod === 'card' && (
+              <>
+                <div className="flex items-center gap-3 mb-6">
+                  <button
+                    onClick={() => setPaymentStep('select')}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-all"
+                  >
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <h2 className="text-lg font-bold text-gray-800">Card Payment</h2>
+                </div>
+
+                {/* Payment Amount */}
+                <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl p-4 mb-6 border border-teal-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 font-medium">Amount to Pay</span>
+                    <span className="text-2xl font-bold text-teal-600">₹{selectedDoctor?.fee}</span>
+                  </div>
+                </div>
+
+                {/* Card Form */}
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Card Number</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={cardDetails.cardNumber}
+                        onChange={(e) => setCardDetails({...cardDetails, cardNumber: formatCardNumber(e.target.value)})}
+                        placeholder="1234 5678 9012 3456"
+                        maxLength={19}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 pr-12"
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-1">
+                        <svg className="w-8 h-5 text-gray-400" viewBox="0 0 48 32">
+                          <rect fill="#1A1F71" width="48" height="32" rx="4"/>
+                          <text fill="white" fontSize="10" fontWeight="bold" x="8" y="20">VISA</text>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Cardholder Name</label>
+                    <input
+                      type="text"
+                      value={cardDetails.cardName}
+                      onChange={(e) => setCardDetails({...cardDetails, cardName: e.target.value.toUpperCase()})}
+                      placeholder="JOHN DOE"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Expiry Date</label>
+                      <input
+                        type="text"
+                        value={cardDetails.expiry}
+                        onChange={(e) => setCardDetails({...cardDetails, expiry: formatExpiry(e.target.value)})}
+                        placeholder="MM/YY"
+                        maxLength={5}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">CVV</label>
+                      <input
+                        type="password"
+                        value={cardDetails.cvv}
+                        onChange={(e) => setCardDetails({...cardDetails, cvv: e.target.value.replace(/\D/g, '').slice(0, 4)})}
+                        placeholder="•••"
+                        maxLength={4}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Secure Payment Notice */}
+                <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+                  <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+                  </svg>
+                  Your payment information is secured with 256-bit encryption
+                </div>
+
+                <div className="flex justify-between">
+                  <button
+                    onClick={() => {
+                      setPaymentStep('select')
+                      setCardDetails({ cardNumber: '', cardName: '', expiry: '', cvv: '' })
+                    }}
+                    className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={processPayment}
+                    disabled={!isValidCard()}
+                    className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                      isValidCard()
+                        ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:shadow-lg'
+                        : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    Pay ₹{selectedDoctor?.fee}
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Net Banking Payment */}
+            {paymentStep === 'details' && paymentMethod === 'netbanking' && (
+              <>
+                <div className="flex items-center gap-3 mb-6">
+                  <button
+                    onClick={() => setPaymentStep('select')}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-all"
+                  >
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <h2 className="text-lg font-bold text-gray-800">Net Banking</h2>
+                </div>
+
+                {/* Payment Amount */}
+                <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl p-4 mb-6 border border-teal-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 font-medium">Amount to Pay</span>
+                    <span className="text-2xl font-bold text-teal-600">₹{selectedDoctor?.fee}</span>
+                  </div>
+                </div>
+
+                {/* Bank Selection */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Select Your Bank</label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {['SBI', 'HDFC', 'ICICI', 'Axis Bank', 'Kotak', 'PNB'].map(bank => (
+                      <button
+                        key={bank}
+                        onClick={processPayment}
+                        className="p-4 border-2 rounded-xl text-center hover:border-teal-500 hover:bg-teal-50 transition-all"
+                      >
+                        <span className="text-2xl mb-2 block">🏦</span>
+                        <span className="text-sm font-medium text-gray-700">{bank}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex justify-start">
+                  <button
+                    onClick={() => setPaymentStep('select')}
+                    className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
