@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import { AppProvider } from '@/contexts/AppContext'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -7,10 +7,14 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'MediFlow - Healthcare Appointment System',
   description: 'Book appointments with doctors, manage medical records, and more.',
-  viewport: 'width=device-width, initial-scale=1.0',
   icons: {
     icon: '/favicon.ico',
   },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1.0,
 }
 
 export default function RootLayout({
