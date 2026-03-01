@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import { AppProvider } from '@/contexts/AppContext'
 import { AuthProvider } from '@/contexts/AuthContext'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -31,13 +32,15 @@ export default function RootLayout({
         <script src="https://checkout.razorpay.com/v1/checkout.js" defer />
       </head>
       <body>
-        <LanguageProvider>
-          <AuthProvider>
-            <AppProvider>
-              {children}
-            </AppProvider>
-          </AuthProvider>
-        </LanguageProvider>
+        <ErrorBoundary>
+          <LanguageProvider>
+            <AuthProvider>
+              <AppProvider>
+                {children}
+              </AppProvider>
+            </AuthProvider>
+          </LanguageProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )

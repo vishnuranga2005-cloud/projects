@@ -2,14 +2,29 @@ import { createClient } from '@supabase/supabase-js';
 
 let supabaseInstance: ReturnType<typeof createClient> | null = null;
 
+const createDummyClient = () => ({
+  from: () => ({
+    select: async () => ({ data: null, error: null }),
+    insert: async () => ({ data: null, error: null }),
+    update: async () => ({ data: null, error: null }),
+    delete: async () => ({ data: null, error: null }),
+  }),
+  auth: {
+    getSession: async () => ({ data: { session: null }, error: null }),
+    signUp: async () => ({ data: null, error: new Error('Supabase not configured') }),
+    signInWithPassword: async () => ({ data: null, error: new Error('Supabase not configured') }),
+    signOut: async () => ({ error: null }),
+    onAuthStateChange: () => ({ data: { subscription: null } }),
+  },
+  storage: {
+    from: () => ({ upload: async () => ({ error: null }) }),
+  },
+});
+
 export const getSupabaseClient = () => {
   // Only initialize on client side
   if (typeof window === 'undefined') {
-    // Return a dummy client on server side
-    return {
-      from: () => ({ select: async () => ({ data: null, error: null }) }),
-      auth: { getSession: async () => ({ data: { session: null } }) },
-    } as any;
+    return createDummyClient() as any;
   }
 
   if (!supabaseInstance) {
@@ -17,36 +32,35 @@ export const getSupabaseClient = () => {
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseAnonKey) {
-      console.error('Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
-      // Return a dummy client if env vars are missing
-      return {
-        from: () => ({ select: async () => ({ data: null, error: null }) }),
-        auth: { getSession: async () => ({ data: { session: null } }) },
-      } as any;
+      console.warn('⚠️ Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
+      console.warn('ℹ️  Please set these in your Vercel Dashboard → Settings → Environment Variables');
+      return createDummyClient() as any;
     }
 
-    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-      },
-      global: {
-        fetch: fetch,
-        headers: {
-          'X-Client-Info': 'supabase-js/2.0',
+    try {
+      supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
         },
-      },
-    });
+        global: {
+          fetch: fetch,
+          headers: {
+            'X-Client-Info': 'supabase-js/2.0',
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Failed to initialize Supabase client:', error);
+      return createDummyClient() as any;
+    }
   }
 
   return supabaseInstance;
 };
 
 // Export as supabase for backward compatibility
-export const supabase = typeof window !== 'undefined' ? getSupabaseClient() : ({
-  from: () => ({ select: async () => ({ data: null, error: null }) }),
-  auth: { getSession: async () => ({ data: { session: null } }) },
-} as any);
+export const supabase = typeof window !== 'undefined' ? getSupabaseClient() : createDummyClient() as any;
 
 // Helper function to handle errors with user-friendly messages
 export const handleDatabaseError = (error: any): { message: string; isNetworkError: boolean } => {
