@@ -1,3 +1,5 @@
+'use client'
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AuthUser, getCurrentUser, onAuthStateChange, signOut, handleAuthCallback } from '../lib/auth';
 

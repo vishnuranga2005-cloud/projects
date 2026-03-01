@@ -22,12 +22,15 @@ dist/
 dist-ssr/
 build/
 out/
+.next/
+.vercel/
 
 # Editor & IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+.DS_Store
 *.swn
 *.sublime-project
 *.sublime-workspace

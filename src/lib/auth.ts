@@ -270,7 +270,7 @@ export const signOut = async (): Promise<void> => {
 
 // Listen to auth changes
 export const onAuthStateChange = (callback: (user: AuthUser | null) => void) => {
-  return supabase.auth.onAuthStateChange((_event, session) => {
+  return supabase.auth.onAuthStateChange((_event: string, session: any) => {
     if (session?.user) {
       callback({
         id: session.user.id,

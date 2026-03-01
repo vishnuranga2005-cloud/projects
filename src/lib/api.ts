@@ -1,21 +1,22 @@
 /**
- * API Configuration
+ * API Configuration for Next.js
  * Handles API base URL for different environments
  */
 
 export const getApiBaseUrl = (): string => {
-  // In production (Vercel), use the VITE_API_BASE_URL environment variable
-  if (import.meta.env.PROD && import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
+  // Use Next.js public environment variable
+  if (typeof window !== 'undefined') {
+    // Client-side
+    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (apiUrl) {
+      return apiUrl;
+    }
+    // Fallback to current origin
+    return window.location.origin;
   }
-
-  // In development, use localhost
-  if (import.meta.env.DEV) {
-    return `http://localhost:${import.meta.env.VITE_API_PORT || 3001}`;
-  }
-
-  // Fallback to current origin
-  return window.location.origin;
+  
+  // Server-side
+  return process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
 };
 
 export const createApiUrl = (endpoint: string): string => {
@@ -32,7 +33,9 @@ export const apiFetch = async (
   options: RequestInit = {}
 ): Promise<Response> => {
   const url = createApiUrl(endpoint);
-  const timeoutMs = import.meta.env.VITE_API_TIMEOUT ? parseInt(import.meta.env.VITE_API_TIMEOUT, 10) : 30000;
+  const timeoutMs = process.env.NEXT_PUBLIC_API_TIMEOUT 
+    ? parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT, 10) 
+    : 30000;
   
   try {
     // Create abort controller for timeout

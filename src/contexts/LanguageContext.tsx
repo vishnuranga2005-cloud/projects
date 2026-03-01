@@ -1,3 +1,5 @@
+'use client'
+
 import { createContext, useState, ReactNode, useContext } from 'react'
 import { translations } from '../i18n/translations'
 

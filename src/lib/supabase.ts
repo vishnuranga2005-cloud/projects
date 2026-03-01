@@ -1,24 +1,52 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+let supabaseInstance: ReturnType<typeof createClient> | null = null;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
+export const getSupabaseClient = () => {
+  // Only initialize on client side
+  if (typeof window === 'undefined') {
+    // Return a dummy client on server side
+    return {
+      from: () => ({ select: async () => ({ data: null, error: null }) }),
+      auth: { getSession: async () => ({ data: { session: null } }) },
+    } as any;
+  }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-  },
-  global: {
-    fetch: fetch,
-    headers: {
-      'X-Client-Info': 'supabase-js/2.0',
-    },
-  },
-});
+  if (!supabaseInstance) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
+      // Return a dummy client if env vars are missing
+      return {
+        from: () => ({ select: async () => ({ data: null, error: null }) }),
+        auth: { getSession: async () => ({ data: { session: null } }) },
+      } as any;
+    }
+
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+      },
+      global: {
+        fetch: fetch,
+        headers: {
+          'X-Client-Info': 'supabase-js/2.0',
+        },
+      },
+    });
+  }
+
+  return supabaseInstance;
+};
+
+// Export as supabase for backward compatibility
+export const supabase = typeof window !== 'undefined' ? getSupabaseClient() : ({
+  from: () => ({ select: async () => ({ data: null, error: null }) }),
+  auth: { getSession: async () => ({ data: { session: null } }) },
+} as any);
 
 // Helper function to handle errors with user-friendly messages
 export const handleDatabaseError = (error: any): { message: string; isNetworkError: boolean } => {
