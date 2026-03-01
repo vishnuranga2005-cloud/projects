@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, handleDatabaseError } from './supabase';
 
 export interface AuthUser {
   id: string;
@@ -6,6 +6,17 @@ export interface AuthUser {
   phone?: string;
   role?: 'patient' | 'hospital';
 }
+
+// Helper to handle network errors
+const handleNetworkError = (error: any): string => {
+  const { message, isNetworkError } = handleDatabaseError(error);
+  
+  if (isNetworkError) {
+    return message + ' If the problem persists, check that:\n1. Your internet connection is working\n2. Your Supabase project is active (not paused)\n3. Your environment variables are correct';
+  }
+  
+  return message || error.message || 'An unexpected error occurred';
+};
 
 // Sign up with email and password
 export const signUpWithPassword = async (email: string, password: string): Promise<{ success: boolean; user?: AuthUser; error?: string; needsConfirmation?: boolean }> => {
@@ -51,7 +62,7 @@ export const signUpWithPassword = async (email: string, password: string): Promi
     
     return { success: false, error: 'Signup failed' };
   } catch (error: any) {
-    return { success: false, error: error.message };
+    return { success: false, error: handleNetworkError(error) };
   }
 };
 
@@ -86,7 +97,7 @@ export const signInWithPassword = async (email: string, password: string): Promi
     
     return { success: false, error: 'Login failed' };
   } catch (error: any) {
-    return { success: false, error: error.message };
+    return { success: false, error: handleNetworkError(error) };
   }
 };
 

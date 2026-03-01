@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useApp } from '../../contexts/AppContext'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { initiateRazorpayPayment, getRazorpayKeyId } from '../../lib/razorpay'
 
 const doctors = [
   { id: '1', name: 'Dr. Priya Sharma', specialty: 'Cardiologist', fee: 500, location: 'Mumbai' },
@@ -45,9 +44,6 @@ export default function BookAppointment() {
     expiry: '',
     cvv: ''
   })
-  
-  // Check if Razorpay is configured
-  const isRazorpayConfigured = getRazorpayKeyId() && getRazorpayKeyId() !== 'rzp_test_XXXXXXXXXXXX'
 
   // Clear context selected doctor after using it
   useEffect(() => {
@@ -111,114 +107,36 @@ export default function BookAppointment() {
   const processPayment = () => {
     if (!selectedDoctor) return
     
-    // If Razorpay is configured, use it
-    if (isRazorpayConfigured) {
-      initiateRazorpayPayment({
-        amount: selectedDoctor.fee,
-        patientName,
-        patientPhone,
-        doctorName: selectedDoctor.name,
-        appointmentDetails: `${selectedDate} at ${selectedTime}`,
-        onSuccess: (pId, orderId) => {
-          setPaymentId(pId)
-          setPaymentStep('complete')
-          // After showing complete, proceed to booking
-          setTimeout(() => {
-            addAppointment({
-              patientId: currentPatient?.id || `guest-${Date.now()}`,
-              patientName,
-              patientPhone,
-              doctorId: selectedDoctor.id,
-              doctorName: selectedDoctor.name,
-              date: selectedDate,
-              time: selectedTime,
-              status: delay > 0 ? 'delayed' : 'pending',
-              delayMinutes: delay > 0 ? delay : undefined,
-              delayReason: delay > 0 ? 'Emergency cases in hospital' : undefined,
-              paymentId: pId,
-              paymentStatus: 'paid',
-            })
-            setBookingSuccess(true)
-          }, 1500)
-        },
-        onFailure: (error) => {
-          setPaymentError(error)
-          setPaymentStep('error')
-        },
-        onDismiss: () => {
-          setPaymentStep('select')
-        },
-      })
-    } else {
-      // Fallback: Simulate payment processing (for demo/development)
-      setPaymentStep('processing')
+    // Simulate payment processing (demo mode - Razorpay backend removed)
+    setPaymentStep('processing')
+    setTimeout(() => {
+      setPaymentStep('complete')
       setTimeout(() => {
-        setPaymentStep('complete')
-        setTimeout(() => {
-          if (selectedDoctor && selectedDate && selectedTime && patientName && patientPhone && paymentMethod) {
-            addAppointment({
-              patientId: currentPatient?.id || `guest-${Date.now()}`,
-              patientName,
-              patientPhone,
-              doctorId: selectedDoctor.id,
-              doctorName: selectedDoctor.name,
-              date: selectedDate,
-              time: selectedTime,
-              status: delay > 0 ? 'delayed' : 'pending',
-              delayMinutes: delay > 0 ? delay : undefined,
-              delayReason: delay > 0 ? 'Emergency cases in hospital' : undefined,
-            })
-            setBookingSuccess(true)
-          }
-        }, 1500)
-      }, 2500)
-    }
+        if (selectedDoctor && selectedDate && selectedTime && patientName && patientPhone && paymentMethod) {
+          addAppointment({
+            patientId: currentPatient?.id || `guest-${Date.now()}`,
+            patientName,
+            patientPhone,
+            doctorId: selectedDoctor.id,
+            doctorName: selectedDoctor.name,
+            date: selectedDate,
+            time: selectedTime,
+            status: delay > 0 ? 'delayed' : 'pending',
+            delayMinutes: delay > 0 ? delay : undefined,
+            delayReason: delay > 0 ? 'Emergency cases in hospital' : undefined,
+          })
+          setBookingSuccess(true)
+        }
+      }, 1500)
+    }, 2500)
   }
   
-  // Open Razorpay checkout directly (for UPI/Card via Razorpay)
+  // Open payment checkout (demo mode - Razorpay backend removed)
   const openRazorpayCheckout = () => {
     if (!selectedDoctor) return
     
-    if (isRazorpayConfigured) {
-      initiateRazorpayPayment({
-        amount: selectedDoctor.fee,
-        patientName,
-        patientPhone,
-        doctorName: selectedDoctor.name,
-        appointmentDetails: `${selectedDate} at ${selectedTime}`,
-        onSuccess: (pId, orderId) => {
-          setPaymentId(pId)
-          setPaymentStep('complete')
-          setTimeout(() => {
-            addAppointment({
-              patientId: currentPatient?.id || `guest-${Date.now()}`,
-              patientName,
-              patientPhone,
-              doctorId: selectedDoctor.id,
-              doctorName: selectedDoctor.name,
-              date: selectedDate,
-              time: selectedTime,
-              status: delay > 0 ? 'delayed' : 'pending',
-              delayMinutes: delay > 0 ? delay : undefined,
-              delayReason: delay > 0 ? 'Emergency cases in hospital' : undefined,
-              paymentId: pId,
-              paymentStatus: 'paid',
-            })
-            setBookingSuccess(true)
-          }, 1500)
-        },
-        onFailure: (error) => {
-          setPaymentError(error)
-          setPaymentStep('error')
-        },
-        onDismiss: () => {
-          setPaymentStep('select')
-        },
-      })
-    } else {
-      // If Razorpay not configured, show details form for demo
-      setPaymentStep('details')
-    }
+    // Simulate payment processing
+    processPayment()
   }
 
   const handleBooking = () => {
@@ -239,11 +157,8 @@ export default function BookAppointment() {
         })
         setBookingSuccess(true)
       } else if (paymentMethod === 'upi' || paymentMethod === 'card') {
-        // For UPI and Card, open Razorpay checkout (or fallback form)
+        // For UPI and Card, process payment in demo mode
         openRazorpayCheckout()
-      } else {
-        // For Net Banking, show bank selection
-        setPaymentStep('details')
       }
     }
   }
@@ -720,25 +635,13 @@ export default function BookAppointment() {
                   {t('bookAppointment.paymentMethod') || 'Select Payment Method'}
                 </h2>
                 
-                {/* Razorpay Badge */}
-                {isRazorpayConfigured && (
-                  <div className="flex items-center gap-2 mb-4 text-sm text-gray-500">
-                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
-                    </svg>
-                    Secured by Razorpay - PCI DSS Compliant
-                  </div>
-                )}
-                
                 {/* Demo Mode Notice */}
-                {!isRazorpayConfigured && (
-                  <div className="flex items-center gap-2 mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
-                    </svg>
-                    Demo Mode - Configure Razorpay keys for real payments
-                  </div>
-                )}
+                <div className="flex items-center gap-2 mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                  </svg>
+                  Demo Mode - Payments are simulated for testing only
+                </div>
                 
                 {/* Payment Amount */}
                 <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl p-4 mb-6 border border-teal-200">
