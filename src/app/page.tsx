@@ -1,34 +1,48 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Navbar from '@/components/Navbar'
-import Sidebar from '@/components/Sidebar'
-import ProfileSetupModal from '@/components/ProfileSetupModal'
 import { useApp } from '@/contexts/AppContext'
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/lib/supabase'
+
+// Lazy load components to avoid hydration issues
+import dynamicLoader from 'next/dynamic'
+
+const Navbar = dynamicLoader(() => import('@/components/Navbar'), { loading: () => <div /> })
+const Sidebar = dynamicLoader(() => import('@/components/Sidebar'), { loading: () => <div /> })
+const ProfileSetupModal = dynamicLoader(() => import('@/components/ProfileSetupModal'), { loading: () => <div /> })
 
 // Patient Pages
-import PatientDashboard from '@/page-components/patient/PatientDashboard'
-import BookAppointment from '@/page-components/patient/BookAppointment'
-import PatientAppointments from '@/page-components/patient/PatientAppointments'
-import MedicalHistory from '@/page-components/patient/MedicalHistory'
-import Settings from '@/page-components/patient/Settings'
+const PatientDashboard = dynamicLoader(() => import('@/page-components/patient/PatientDashboard'), { loading: () => <LoadingPage /> })
+const BookAppointment = dynamicLoader(() => import('@/page-components/patient/BookAppointment'), { loading: () => <LoadingPage /> })
+const PatientAppointments = dynamicLoader(() => import('@/page-components/patient/PatientAppointments'), { loading: () => <LoadingPage /> })
+const MedicalHistory = dynamicLoader(() => import('@/page-components/patient/MedicalHistory'), { loading: () => <LoadingPage /> })
+const Settings = dynamicLoader(() => import('@/page-components/patient/Settings'), { loading: () => <LoadingPage /> })
 
 // Hospital Pages
-import HospitalDashboard from '@/page-components/hospital/HospitalDashboard'
-import ManageAppointments from '@/page-components/hospital/ManageAppointments'
-import EmergencyManagement from '@/page-components/hospital/EmergencyManagement'
-import PatientMedications from '@/page-components/hospital/PatientMedications'
+const HospitalDashboard = dynamicLoader(() => import('@/page-components/hospital/HospitalDashboard'), { loading: () => <LoadingPage /> })
+const ManageAppointments = dynamicLoader(() => import('@/page-components/hospital/ManageAppointments'), { loading: () => <LoadingPage /> })
+const EmergencyManagement = dynamicLoader(() => import('@/page-components/hospital/EmergencyManagement'), { loading: () => <LoadingPage /> })
+const PatientMedications = dynamicLoader(() => import('@/page-components/hospital/PatientMedications'), { loading: () => <LoadingPage /> })
 
 // Shared
-import RoleSelection from '@/page-components/RoleSelection'
-import FindDoctors from '@/page-components/FindDoctors'
-import Login from '@/page-components/Login'
+const RoleSelection = dynamicLoader(() => import('@/page-components/RoleSelection'), { loading: () => <LoadingPage /> })
+const FindDoctors = dynamicLoader(() => import('@/page-components/FindDoctors'), { loading: () => <LoadingPage /> })
+const Login = dynamicLoader(() => import('@/page-components/Login'), { loading: () => <LoadingPage /> })
 
 type PatientPage = 'patient-dashboard' | 'book-appointment' | 'patient-appointments' | 'find-doctors' | 'medical-history' | 'settings'
 type HospitalPage = 'hospital-dashboard' | 'manage-appointments' | 'emergency-management' | 'patient-medications'
 type Page = PatientPage | HospitalPage
+
+function LoadingPage() {
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    </div>
+  );
+}
 
 function PageContent() {
   const { userRole, setNavigateTo, setCurrentPatient } = useApp()
@@ -62,6 +76,7 @@ function PageContent() {
       setCheckingProfile(true);
       
       try {
+        const { supabase } = await import('@/lib/supabase');
         if (userRole === 'patient') {
           const { data } = await supabase
             .from('patients')
@@ -70,7 +85,6 @@ function PageContent() {
             .single();
           
           if (data) {
-            // Load existing profile into context
             setCurrentPatient({
               id: data.user_id,
               name: data.full_name,
@@ -110,14 +124,7 @@ function PageContent() {
 
   // Show loading state
   if (isLoading || checkingProfile) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return <LoadingPage />;
   }
 
   // Show login if not authenticated
