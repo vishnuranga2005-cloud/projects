@@ -25,30 +25,45 @@ export const createApiUrl = (endpoint: string): string => {
 };
 
 /**
- * Fetch wrapper with error handling
+ * Fetch wrapper with error handling and timeout support
  */
 export const apiFetch = async (
   endpoint: string,
   options: RequestInit = {}
 ): Promise<Response> => {
   const url = createApiUrl(endpoint);
+  const timeoutMs = import.meta.env.VITE_API_TIMEOUT ? parseInt(import.meta.env.VITE_API_TIMEOUT, 10) : 30000;
   
   try {
-    const response = await fetch(url, {
-      timeout: import.meta.env.VITE_API_TIMEOUT || 30000,
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
+    // Create abort controller for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        },
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+
+      return response;
+    } finally {
+      clearTimeout(timeoutId);
     }
-
-    return response;
   } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.error(`API request timeout for ${endpoint}`);
+      throw new Error(`Request to ${endpoint} timed out after ${timeoutMs}ms`);
+    }
     console.error(`API request failed for ${endpoint}:`, error);
     throw error;
   }
