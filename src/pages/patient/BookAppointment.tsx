@@ -21,7 +21,7 @@ export default function BookAppointment() {
   const { t } = useLanguage()
 
   // Check if we have a pre-selected doctor from context (from FindDoctors page)
-  const preSelectedDoctor = contextSelectedDoctor ? doctors.find(d => d.id === contextSelectedDoctor.id) : null
+  const preSelectedDoctor = contextSelectedDoctor ? doctors.find(d => d.id === contextSelectedDoctor.id) || null : null
 
   const [step, setStep] = useState(preSelectedDoctor ? 2 : 1)
   const [selectedDoctor, setSelectedDoctor] = useState<typeof doctors[0] | null>(preSelectedDoctor)
