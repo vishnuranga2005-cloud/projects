@@ -48,13 +48,14 @@ function PageContent() {
   const { userRole, setNavigateTo, setCurrentPatient } = useApp()
   const { user, isAuthenticated, isLoading, logout } = useAuth()
   const [currentPage, setCurrentPage] = useState<Page>('patient-dashboard')
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showProfileSetup, setShowProfileSetup] = useState(false)
   const [checkingProfile, setCheckingProfile] = useState(false)
 
-  // Reset page when switching roles
+  // Reset page when switching roles, but do not close sidebar
   const handlePageChange = (page: string) => {
     setCurrentPage(page as Page)
+    // Do not setSidebarOpen(false) here; sidebar stays as user left it
   }
 
   // Register navigation function with context
@@ -167,22 +168,27 @@ function PageContent() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <Sidebar 
-        isOpen={sidebarOpen} 
+    <div className="flex h-screen w-screen bg-gradient-to-br from-white to-blue-100">
+      {/* Sidebar: persistent on desktop, drawer on mobile */}
+      <Sidebar
+        isOpen={sidebarOpen}
         currentPage={currentPage}
         onNavigate={handlePageChange}
         userRole={userRole}
       />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Navbar 
+      <div className={`flex-1 flex flex-col min-h-0 transition-all duration-300 ${sidebarOpen ? '' : 'w-full'}`}>
+        {/* Navbar: sticky, role-based color */}
+        <Navbar
           onMenuClick={() => setSidebarOpen(!sidebarOpen)}
           userRole={userRole}
           onLogout={logout}
         />
-        <main className="flex-1 overflow-auto">
+        {/* Main content area with padding and scroll */}
+        <main className="flex-1 overflow-auto p-0 md:p-0 bg-transparent w-full h-full">
           {renderPage()}
         </main>
+        {/* Optional: Footer for branding or info */}
+        {/* <footer className="py-4 text-center text-xs text-gray-400">MediFlow &copy; 2026</footer> */}
       </div>
     </div>
   );

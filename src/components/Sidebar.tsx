@@ -120,99 +120,100 @@ export default function Sidebar({ isOpen, currentPage, onNavigate, userRole }: S
 
   return (
     <aside
-      className={`fixed left-0 top-16 h-[calc(100vh-64px)] bg-gradient-to-b from-white to-slate-50 border-r-4 transition-all duration-300 z-30 shadow-xl ${
+      className={`fixed left-0 top-0 h-full bg-white dark:bg-gray-900 border-r-2 transition-all duration-300 z-30 shadow-2xl ${
         userRole === 'patient' ? 'border-teal-200' : 'border-cyan-200'
-      } ${isOpen ? 'w-64' : '-translate-x-full w-64'}`}
+      } ${isOpen ? 'w-64' : '-translate-x-full w-64'} flex flex-col`}
+      style={{ minHeight: '100vh' }}
     >
-      <div className="p-4 space-y-2 mt-4">
-        {/* Role Badge */}
-        <div className={`px-4 py-2 rounded-lg mb-4 ${
-          userRole === 'patient' 
-            ? 'bg-gradient-to-r from-teal-100 to-cyan-100 text-teal-700' 
-            : 'bg-gradient-to-r from-cyan-100 to-teal-100 text-cyan-700'
-        }`}>
-          <p className="text-xs font-bold uppercase tracking-wide">
-            {userRole === 'patient' ? 'Patient Portal' : 'Staff Portal'}
-          </p>
-        </div>
-
-        {menuItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onNavigate(item.id)}
-            className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all duration-200 font-medium border-l-4 relative ${
-              currentPage === item.id
-                ? userRole === 'patient'
-                  ? 'bg-gradient-to-r from-teal-50 to-cyan-50 text-teal-700 border-teal-600 shadow-md'
-                  : 'bg-gradient-to-r from-cyan-50 to-teal-50 text-cyan-700 border-cyan-600 shadow-md'
-                : 'text-gray-700 hover:bg-teal-50 hover:border-teal-400 border-transparent'
-            } ${(item as any).isEmergency ? 'animate-pulse' : ''}`}
-          >
-            <span className={(item as any).isEmergency ? 'text-red-500' : ''}>
-              {item.icon}
-            </span>
-            <span className="text-sm flex-1">{item.label}</span>
-            {(item as any).badge && (
-              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                (item as any).isEmergency 
-                  ? 'bg-red-500 text-white' 
-                  : 'bg-yellow-400 text-yellow-900'
-              }`}>
-                {(item as any).badge}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Status Card */}
-      <div className="px-4 py-4 mt-4">
-        {userRole === 'patient' ? (
-          // Patient: Show waiting time
-          <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl p-4 shadow-sm border-2 border-teal-200">
-            <p className="text-xs text-teal-700 uppercase font-bold tracking-wide">Average Wait Time</p>
-            <p className="text-3xl font-bold text-teal-700 mt-2">
-              {15 + (activeEmergencies.length > 0 ? activeEmergencies[0].estimatedDelay : 0)} min
+      <div className="flex-1 flex flex-col justify-between">
+        <div className="p-6 space-y-4">
+          {/* Role Badge */}
+          <div className={`px-4 py-2 rounded-lg mb-4 shadow-md ${
+            userRole === 'patient'
+              ? 'bg-gradient-to-r from-teal-100 to-cyan-100 text-teal-700'
+              : 'bg-gradient-to-r from-cyan-100 to-teal-100 text-cyan-700'
+          }`}>
+            <p className="text-xs font-bold uppercase tracking-wide">
+              {userRole === 'patient' ? 'Patient Portal' : 'Staff Portal'}
             </p>
-            {activeEmergencies.length > 0 && (
-              <p className="text-xs text-red-500 mt-1">
-                +{activeEmergencies[0].estimatedDelay} min due to emergency
-              </p>
-            )}
           </div>
-        ) : (
-          // Hospital: Show appointments status
-          <div className="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-xl p-4 shadow-sm border-2 border-cyan-200">
-            <p className="text-xs text-cyan-700 uppercase font-bold tracking-wide">Today's Overview</p>
-            <p className="text-2xl font-bold text-cyan-700 mt-2">{todayAppointments}</p>
-            <p className="text-xs text-cyan-600 mt-1">Appointments Today</p>
-            <div className="flex gap-2 mt-3">
-              <div className="flex-1 bg-yellow-100 text-yellow-700 text-xs font-bold px-2 py-1 rounded-lg text-center">
-                {pendingAppointments} Pending
-              </div>
-              <div className="flex-1 bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-lg text-center">
-                {appointments.filter((a) => a.status === 'confirmed').length} Confirmed
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
 
-      {/* Emergency Alert for Patient Sidebar */}
-      {userRole === 'patient' && activeEmergencies.length > 0 && (
-        <div className="px-4">
-          <div className="bg-red-50 border-2 border-red-300 rounded-xl p-3 animate-pulse">
-            <div className="flex items-center gap-2">
-              <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
-              </svg>
-              <p className="text-xs text-red-600 font-medium">
-                Emergency in progress - delays expected
-              </p>
-            </div>
-          </div>
+          <nav className="space-y-2">
+            {menuItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => onNavigate(item.id)}
+                className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all duration-200 font-medium border-l-4 relative text-left ${
+                  currentPage === item.id
+                    ? userRole === 'patient'
+                      ? 'bg-gradient-to-r from-teal-50 to-cyan-50 text-teal-700 border-teal-600 shadow-lg'
+                      : 'bg-gradient-to-r from-cyan-50 to-teal-50 text-cyan-700 border-cyan-600 shadow-lg'
+                    : 'text-gray-700 hover:bg-teal-50 hover:border-teal-400 border-transparent dark:text-gray-200'
+                } ${(item as any).isEmergency ? 'animate-pulse' : ''}`}
+              >
+                <span className={(item as any).isEmergency ? 'text-red-500' : ''}>
+                  {item.icon}
+                </span>
+                <span className="text-sm flex-1">{item.label}</span>
+                {(item as any).badge && (
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                    (item as any).isEmergency
+                      ? 'bg-red-500 text-white'
+                      : 'bg-yellow-400 text-yellow-900'
+                  }`}>
+                    {(item as any).badge}
+                  </span>
+                )}
+              </button>
+            ))}
+          </nav>
         </div>
-      )}
+
+        <div className="px-6 pb-6 space-y-4">
+          {/* Status Card */}
+          {userRole === 'patient' ? (
+            <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl p-4 shadow border-2 border-teal-200">
+              <p className="text-xs text-teal-700 uppercase font-bold tracking-wide">Average Wait Time</p>
+              <p className="text-3xl font-bold text-teal-700 mt-2">
+                {15 + (activeEmergencies.length > 0 ? activeEmergencies[0].estimatedDelay : 0)} min
+              </p>
+              {activeEmergencies.length > 0 && (
+                <p className="text-xs text-red-500 mt-1">
+                  +{activeEmergencies[0].estimatedDelay} min due to emergency
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-xl p-4 shadow border-2 border-cyan-200">
+              <p className="text-xs text-cyan-700 uppercase font-bold tracking-wide">Today's Overview</p>
+              <p className="text-2xl font-bold text-cyan-700 mt-2">{todayAppointments}</p>
+              <p className="text-xs text-cyan-600 mt-1">Appointments Today</p>
+              <div className="flex gap-2 mt-3">
+                <div className="flex-1 bg-yellow-100 text-yellow-700 text-xs font-bold px-2 py-1 rounded-lg text-center">
+                  {pendingAppointments} Pending
+                </div>
+                <div className="flex-1 bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-lg text-center">
+                  {appointments.filter((a) => a.status === 'confirmed').length} Confirmed
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Emergency Alert for Patient Sidebar */}
+          {userRole === 'patient' && activeEmergencies.length > 0 && (
+            <div className="mt-4">
+              <div className="bg-red-50 border-2 border-red-300 rounded-xl p-3 animate-pulse flex items-center gap-2">
+                <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+                </svg>
+                <p className="text-xs text-red-600 font-medium">
+                  Emergency in progress - delays expected
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </aside>
   )
 }

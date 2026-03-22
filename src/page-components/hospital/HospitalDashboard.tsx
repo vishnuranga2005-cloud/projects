@@ -206,25 +206,25 @@ export default function HospitalDashboard() {
             <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
               <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z" />
             </svg>
-            <span className="text-sm font-medium">New Appointment</span>
+            <span className="text-sm font-bold text-teal-600 bg-white px-2 py-1 rounded">New Appointment</span>
           </button>
           <button className="p-4 bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl hover:shadow-lg transition-all flex flex-col items-center gap-2">
             <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
               <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
             </svg>
-            <span className="text-sm font-medium">Add Emergency</span>
+            <span className="text-sm font-bold text-red-600 bg-white px-2 py-1 rounded">Add Emergency</span>
           </button>
           <button className="p-4 bg-gradient-to-br from-cyan-500 to-cyan-600 text-white rounded-xl hover:shadow-lg transition-all flex flex-col items-center gap-2">
             <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
             </svg>
-            <span className="text-sm font-medium">Search Patient</span>
+            <span className="text-sm font-bold text-cyan-600 bg-white px-2 py-1 rounded">Search Patient</span>
           </button>
-          <button className="p-4 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all flex flex-col items-center gap-2">
+          <button className="p-4 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl hover:shadow-lg transition-all flex flex-col items-center gap-2">
             <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
               <path d="M3 13h2v8H3zm4-8h2v16H7zm4-2h2v18h-2zm4-2h2v20h-2zm4 4h2v16h-2z" />
             </svg>
-            <span className="text-sm font-medium">View Analytics</span>
+            <span className="text-sm font-bold text-green-600 bg-white px-2 py-1 rounded">View Analytics</span>
           </button>
         </div>
       </div>
