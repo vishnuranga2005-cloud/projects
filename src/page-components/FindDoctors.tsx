@@ -140,8 +140,9 @@ export default function FindDoctors() {
 
           {/* Specialization */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">Specialization</label>
+            <label htmlFor="specialization-filter" className="block text-sm font-semibold text-gray-700 mb-3">Specialization</label>
             <select
+              id="specialization-filter"
               value={selectedSpecialization}
               onChange={(e) => setSelectedSpecialization(e.target.value)}
               className="w-full px-4 py-3 border-2 border-teal-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
@@ -156,8 +157,9 @@ export default function FindDoctors() {
 
           {/* City */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">City</label>
+            <label htmlFor="city-filter" className="block text-sm font-semibold text-gray-700 mb-3">City</label>
             <select
+              id="city-filter"
               value={selectedCity}
               onChange={(e) => setSelectedCity(e.target.value)}
               className="w-full px-4 py-3 border-2 border-teal-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all"
