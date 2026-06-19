@@ -2,6 +2,40 @@ import { createClient } from '@supabase/supabase-js';
 
 let supabaseInstance: ReturnType<typeof createClient> | null = null;
 
+const SUPABASE_PLACEHOLDER_HOST = 'your-project.supabase.co';
+
+const isValidSupabaseUrl = (value?: string | null): value is string => {
+  if (!value) {
+    return false;
+  }
+
+  if (value.includes(SUPABASE_PLACEHOLDER_HOST)) {
+    return false;
+  }
+
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && url.hostname.endsWith('.supabase.co');
+  } catch {
+    return false;
+  }
+};
+
+const isLikelyPlaceholderKey = (value?: string | null): boolean => {
+  if (!value) {
+    return true;
+  }
+
+  return value.includes('your-anon-key') || value.length < 20;
+};
+
+export const isSupabaseConfigured = (): boolean => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  return isValidSupabaseUrl(supabaseUrl) && !isLikelyPlaceholderKey(supabaseAnonKey);
+};
+
 const createDummyClient = () => ({
   from: () => ({
     select: async () => ({ data: null, error: null }),
@@ -31,9 +65,9 @@ export const getSupabaseClient = () => {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (!supabaseUrl || !supabaseAnonKey) {
+    if (!isSupabaseConfigured()) {
       console.warn('⚠️ Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
-      console.warn('ℹ️  Please set these in your Vercel Dashboard → Settings → Environment Variables');
+      console.warn('ℹ️  Please set a valid https://*.supabase.co URL and anon key in your Vercel Dashboard → Settings → Environment Variables');
       return createDummyClient() as any;
     }
 
