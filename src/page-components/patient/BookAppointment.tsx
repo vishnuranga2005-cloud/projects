@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useApp } from '../../contexts/AppContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 
@@ -50,7 +50,7 @@ export default function BookAppointment() {
     if (contextSelectedDoctor) {
       setContextSelectedDoctor(null)
     }
-  }, [])
+  }, [contextSelectedDoctor, setContextSelectedDoctor])
 
   const delay = getActiveEmergencyDelay()
 
@@ -63,45 +63,46 @@ export default function BookAppointment() {
   }, [])
 
   // Helper function to check if a time slot has passed
-  const isSlotPassed = (slotTime: string, date: string) => {
+  const isSlotPassed = useCallback((slotTime: string, date: string) => {
     if (!date) return false
-    
+
     const today = new Date().toISOString().split('T')[0]
-    
+
     // If selected date is in the future, slot hasn't passed
     if (date > today) return false
-    
+
     // If selected date is in the past, slot has passed
     if (date < today) return true
-    
+
     // If it's today, check the time
     const [time, period] = slotTime.split(' ')
     const [hours, minutes] = time.split(':').map(Number)
     let hour24 = hours
-    
+
     if (period === 'PM' && hours !== 12) {
       hour24 = hours + 12
     } else if (period === 'AM' && hours === 12) {
       hour24 = 0
     }
-    
+
     const slotDate = new Date()
     slotDate.setHours(hour24, minutes, 0, 0)
-    
+
     return currentTime > slotDate
-  }
+  }, [currentTime])
 
   // Get booked slots for selected doctor and date (updates in real-time)
-  const bookedSlots = selectedDoctor && selectedDate 
-    ? getBookedSlots(selectedDoctor.id, selectedDate) 
-    : []
+  const bookedSlots = useMemo(
+    () => (selectedDoctor && selectedDate ? getBookedSlots(selectedDoctor.id, selectedDate) : []),
+    [selectedDoctor, selectedDate, getBookedSlots]
+  )
 
   // Reset selected time if it becomes booked or has passed
   useEffect(() => {
     if (selectedTime && (bookedSlots.includes(selectedTime) || isSlotPassed(selectedTime, selectedDate))) {
       setSelectedTime('')
     }
-  }, [bookedSlots, selectedTime, appointments, currentTime, selectedDate])
+  }, [bookedSlots, selectedTime, appointments, currentTime, selectedDate, isSlotPassed])
 
   // Handle payment processing and booking
   const processPayment = () => {

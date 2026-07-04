@@ -60,8 +60,8 @@ function PageContent() {
 
   // Register navigation function with context
   useEffect(() => {
-    setNavigateTo(handlePageChange);
-  }, []);
+    setNavigateTo(handlePageChange)
+  }, [setNavigateTo]);
 
   // Check if user has profile when role is selected
   useEffect(() => {
@@ -121,7 +121,7 @@ function PageContent() {
     };
 
     checkProfile();
-  }, [user, userRole]);
+  }, [user, userRole, setCurrentPatient]);
 
   // Show loading state
   if (isLoading || checkingProfile) {
