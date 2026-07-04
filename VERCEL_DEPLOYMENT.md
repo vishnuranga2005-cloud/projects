@@ -3,6 +3,11 @@
 ## Overview
 This guide will help you deploy MediFlow to Vercel with proper configuration for all links and features to work correctly.
 
+## Important Vercel Setting
+Set the **Root Directory** in Vercel to the folder that contains `package.json`.
+
+For this repository, that is the top-level `projects` folder. If Vercel is pointed at `src/` or `server/`, it can fail to detect the Next.js version even though the app is configured correctly.
+
 ## Prerequisites
 - Vercel account (free tier available)
 - GitHub repository with your MediFlow code
