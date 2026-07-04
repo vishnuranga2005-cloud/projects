@@ -2,7 +2,22 @@
 
 import React, { useState } from 'react'
 import Image from 'next/image'
-import { Eye, EyeOff } from 'lucide-react'
+
+const EyeIcon = ({ className }: { className?: string }) => (
+  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className={className}>
+    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+  </svg>
+)
+
+const EyeOffIcon = ({ className }: { className?: string }) => (
+  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className={className}>
+    <path d="M3 3l18 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <path d="M10.6 5.2A9.7 9.7 0 0 1 12 5c6.5 0 10 7 10 7a18.6 18.6 0 0 1-3.3 4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M6.1 6.1A18 18 0 0 0 2 12s3.5 7 10 7c1.3 0 2.5-.2 3.7-.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M9.9 9.9A3 3 0 0 0 14.1 14.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
 
 const GoogleIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 48 48" aria-hidden="true">
@@ -103,9 +118,9 @@ export const SignInPage: React.FC<SignInPageProps> = ({
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
                       {showPassword ? (
-                        <EyeOff className="h-5 w-5 text-slate-500 transition-colors hover:text-slate-900" />
+                        <EyeOffIcon className="h-5 w-5 text-slate-500 transition-colors hover:text-slate-900" />
                       ) : (
-                        <Eye className="h-5 w-5 text-slate-500 transition-colors hover:text-slate-900" />
+                        <EyeIcon className="h-5 w-5 text-slate-500 transition-colors hover:text-slate-900" />
                       )}
                     </button>
                   </div>
@@ -170,7 +185,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
 
       {heroImageSrc && (
         <section className="relative hidden flex-1 p-4 md:block">
-          <div className="animate-slide-right animate-delay-300 absolute inset-4 overflow-hidden rounded-3xl shadow-2xl">
+          <div className="animate-slide-right animate-delay-300 relative h-full w-full overflow-hidden rounded-3xl shadow-2xl">
             <Image src={heroImageSrc} alt="Sign in hero" fill priority className="object-cover" sizes="(min-width: 768px) 50vw, 100vw" />
           </div>
           {testimonials.length > 0 && (

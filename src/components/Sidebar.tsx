@@ -122,9 +122,7 @@ export default function Sidebar({ isOpen, currentPage, onNavigate, userRole }: S
     <aside
       className={`fixed left-0 top-0 h-full bg-white dark:bg-gray-900 border-r-2 transition-all duration-300 z-30 shadow-2xl ${
         userRole === 'patient' ? 'border-teal-200' : 'border-cyan-200'
-      } ${isOpen ? 'w-64' : '-translate-x-full w-64'} flex flex-col`}
-      style={{ minHeight: '100vh' }}
-    >
+      } ${isOpen ? 'w-64' : '-translate-x-full w-64'} flex min-h-screen flex-col`}>
       <div className="flex-1 flex flex-col justify-between">
         <div className="p-6 space-y-4">
           {/* Role Badge */}

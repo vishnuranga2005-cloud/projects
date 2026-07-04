@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useRef, ReactNode } from 'react'
 
 export type UserRole = 'patient' | 'hospital' | null
 
@@ -102,11 +102,15 @@ const AppContext = createContext<AppContextType | undefined>(undefined)
 export function AppProvider({ children }: { children: ReactNode }) {
   const [userRole, setUserRole] = useState<UserRole>(null)
   const [selectedDoctor, setSelectedDoctor] = useState<SelectedDoctor | null>(null)
-  const [navigateTo, setNavigateToState] = useState<((page: string) => void) | null>(null)
-  
-  const setNavigateTo = (fn: (page: string) => void) => {
-    setNavigateToState(() => fn)
-  }
+  const navigateToRef = useRef<((page: string) => void) | null>(null)
+
+  const setNavigateTo = useCallback((fn: (page: string) => void) => {
+    navigateToRef.current = fn
+  }, [])
+
+  const navigateTo = useCallback((page: string) => {
+    navigateToRef.current?.(page)
+  }, [])
   
   const [currentPatient, setCurrentPatient] = useState<Patient | null>(null)
   const [emergencies, setEmergencies] = useState<Emergency[]>([

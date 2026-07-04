@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
-import { signUpWithPassword, signInWithPassword } from '../lib/auth';
+import { signUpWithPassword, signInWithPassword, sendPasswordResetEmail } from '../lib/auth';
 import { SignInPage, type Testimonial } from '@/components/ui/sign-in';
 
 interface LoginProps {
@@ -18,6 +18,7 @@ export default function Login({ onLoginSuccess: _onLoginSuccess }: LoginProps) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
 
   const testimonials: Testimonial[] = [
     {
@@ -111,7 +112,28 @@ export default function Login({ onLoginSuccess: _onLoginSuccess }: LoginProps) {
           });
         }}
         onGoogleSignIn={() => setError('Google sign-in is not configured in this Mediflow build yet.')}
-        onResetPassword={() => setError('Reset password flow can be connected to Supabase email auth next.')}
+        onResetPassword={async () => {
+          const targetEmail = email.trim() || resetEmail.trim();
+
+          if (!targetEmail) {
+            setError('Enter your email first, then choose Reset password.');
+            return;
+          }
+
+          setIsLoading(true);
+          setError('');
+          setSuccess('');
+
+          const result = await sendPasswordResetEmail(targetEmail);
+          setIsLoading(false);
+
+          if (result.success) {
+            setSuccess('Password reset email sent. Check your inbox for the next step.');
+            setResetEmail(targetEmail);
+          } else {
+            setError(result.error || 'Unable to send password reset email');
+          }
+        }}
         onCreateAccount={() => {
           setIsSignUp(true);
           setError('');

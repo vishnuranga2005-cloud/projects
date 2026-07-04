@@ -8,6 +8,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   logout: () => Promise<void>;
+  resetSession: () => void;
   setUser: (user: AuthUser | null) => void;
   connectionError: string | null;
 }
@@ -90,12 +91,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const resetSession = () => {
+    setUser(null);
+    setConnectionError(null);
+    setIsLoading(false);
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
       isLoading,
       isAuthenticated: !!user,
       logout,
+      resetSession,
       setUser,
       connectionError,
     }}>

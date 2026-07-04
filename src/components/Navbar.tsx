@@ -34,9 +34,7 @@ export default function Navbar({ onMenuClick, userRole, onLogout }: NavbarProps)
         userRole === 'patient'
           ? 'bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-500 border-teal-400'
           : 'bg-gradient-to-r from-cyan-700 via-teal-600 to-teal-700 border-cyan-500'
-      }`}
-        style={{ minHeight: 64 }}
-      >
+      } min-h-16`}>
         <div className="px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
@@ -145,7 +143,7 @@ export default function Navbar({ onMenuClick, userRole, onLogout }: NavbarProps)
         </div>
       </nav>
 
-    {/* Patient Profile Modal */}
+      {/* Patient Profile Modal */}
     {showProfileModal && currentPatient && (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">

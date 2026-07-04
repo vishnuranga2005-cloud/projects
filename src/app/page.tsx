@@ -3,31 +3,24 @@
 import { useState, useEffect } from 'react'
 import { useApp } from '@/contexts/AppContext'
 import { useAuth } from '@/contexts/AuthContext'
+import Navbar from '@/components/Navbar'
+import Sidebar from '@/components/Sidebar'
+import ProfileSetupModal from '@/components/ProfileSetupModal'
 
-// Lazy load components to avoid hydration issues
-import dynamicLoader from 'next/dynamic'
+import PatientDashboard from '@/page-components/patient/PatientDashboard'
+import BookAppointment from '@/page-components/patient/BookAppointment'
+import PatientAppointments from '@/page-components/patient/PatientAppointments'
+import MedicalHistory from '@/page-components/patient/MedicalHistory'
+import Settings from '@/page-components/patient/Settings'
 
-const Navbar = dynamicLoader(() => import('@/components/Navbar'), { loading: () => <div /> })
-const Sidebar = dynamicLoader(() => import('@/components/Sidebar'), { loading: () => <div /> })
-const ProfileSetupModal = dynamicLoader(() => import('@/components/ProfileSetupModal'), { loading: () => <div /> })
+import HospitalDashboard from '@/page-components/hospital/HospitalDashboard'
+import ManageAppointments from '@/page-components/hospital/ManageAppointments'
+import EmergencyManagement from '@/page-components/hospital/EmergencyManagement'
+import PatientMedications from '@/page-components/hospital/PatientMedications'
 
-// Patient Pages
-const PatientDashboard = dynamicLoader(() => import('@/page-components/patient/PatientDashboard'), { loading: () => <LoadingPage /> })
-const BookAppointment = dynamicLoader(() => import('@/page-components/patient/BookAppointment'), { loading: () => <LoadingPage /> })
-const PatientAppointments = dynamicLoader(() => import('@/page-components/patient/PatientAppointments'), { loading: () => <LoadingPage /> })
-const MedicalHistory = dynamicLoader(() => import('@/page-components/patient/MedicalHistory'), { loading: () => <LoadingPage /> })
-const Settings = dynamicLoader(() => import('@/page-components/patient/Settings'), { loading: () => <LoadingPage /> })
-
-// Hospital Pages
-const HospitalDashboard = dynamicLoader(() => import('@/page-components/hospital/HospitalDashboard'), { loading: () => <LoadingPage /> })
-const ManageAppointments = dynamicLoader(() => import('@/page-components/hospital/ManageAppointments'), { loading: () => <LoadingPage /> })
-const EmergencyManagement = dynamicLoader(() => import('@/page-components/hospital/EmergencyManagement'), { loading: () => <LoadingPage /> })
-const PatientMedications = dynamicLoader(() => import('@/page-components/hospital/PatientMedications'), { loading: () => <LoadingPage /> })
-
-// Shared
-const RoleSelection = dynamicLoader(() => import('@/page-components/RoleSelection'), { loading: () => <LoadingPage /> })
-const FindDoctors = dynamicLoader(() => import('@/page-components/FindDoctors'), { loading: () => <LoadingPage /> })
-const Login = dynamicLoader(() => import('@/page-components/Login'), { loading: () => <LoadingPage /> })
+import RoleSelection from '@/page-components/RoleSelection'
+import FindDoctors from '@/page-components/FindDoctors'
+import Login from '@/page-components/Login'
 
 type PatientPage = 'patient-dashboard' | 'book-appointment' | 'patient-appointments' | 'find-doctors' | 'medical-history' | 'settings'
 type HospitalPage = 'hospital-dashboard' | 'manage-appointments' | 'emergency-management' | 'patient-medications'
@@ -46,7 +39,7 @@ function LoadingPage() {
 
 function PageContent() {
   const { userRole, setNavigateTo, setCurrentPatient } = useApp()
-  const { user, isAuthenticated, isLoading, logout } = useAuth()
+  const { user, isAuthenticated, isLoading, logout, resetSession } = useAuth()
   const [currentPage, setCurrentPage] = useState<Page>('patient-dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showProfileSetup, setShowProfileSetup] = useState(false)
@@ -181,7 +174,10 @@ function PageContent() {
         <Navbar
           onMenuClick={() => setSidebarOpen(!sidebarOpen)}
           userRole={userRole}
-          onLogout={logout}
+          onLogout={async () => {
+            await logout()
+            resetSession()
+          }}
         />
         {/* Main content area with padding and scroll */}
         <main className="flex-1 overflow-auto p-0 md:p-0 bg-transparent w-full h-full">

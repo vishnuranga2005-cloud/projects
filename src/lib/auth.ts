@@ -144,6 +144,32 @@ export const sendEmailOTP = async (email: string): Promise<{ success: boolean; e
   }
 };
 
+// Send password reset email
+export const sendPasswordResetEmail = async (email: string): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/`,
+    });
+
+    if (error) {
+      console.error('Supabase password reset error:', error);
+
+      if (error.message.includes('Invalid email')) {
+        throw new Error('Please enter a valid email address.');
+      }
+      if (error.message.includes('rate limit') || error.message.includes('Rate limit')) {
+        throw new Error('Too many requests. Please wait a few minutes and try again.');
+      }
+
+      throw new Error(error.message || 'Failed to send password reset email');
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: handleNetworkError(error) };
+  }
+};
+
 // Handle auth callback (when user clicks magic link)
 export const handleAuthCallback = async (): Promise<{ success: boolean; user?: AuthUser; error?: string }> => {
   try {
