@@ -49,8 +49,8 @@ const TestimonialCard = ({ testimonial, delay }: { testimonial: Testimonial; del
 )
 
 export const SignInPage: React.FC<SignInPageProps> = ({
-  title = <span className="font-light tracking-tighter text-slate-900">Welcome</span>,
-  description = 'Access your account and continue your journey with us',
+  title = <span className="font-light tracking-tighter text-slate-900">Welcome to MediFlow</span>,
+  description = 'Access your care platform, manage appointments, and continue your health journey.',
   heroImageSrc,
   testimonials = [],
   onSignIn,
@@ -66,7 +66,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
   }
 
   return (
-    <div className="flex h-[100dvh] w-[100dvw] flex-col bg-gradient-to-br from-slate-50 via-white to-violet-50 text-slate-900 md:flex-row">
+    <div className="flex h-[100dvh] w-[100dvw] flex-col bg-gradient-to-br from-teal-50 via-white to-cyan-50 text-slate-900 md:flex-row">
       <section className="flex flex-1 items-center justify-center p-6 md:p-8">
         <div className="w-full max-w-md">
           <div className="flex flex-col gap-6">
@@ -123,7 +123,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
                     event.preventDefault()
                     onResetPassword?.()
                   }}
-                  className="text-violet-600 transition-colors hover:underline"
+                  className="text-teal-600 transition-colors hover:underline"
                 >
                   Reset password
                 </a>
@@ -131,7 +131,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
 
               <button
                 type="submit"
-                className="animate-element animate-delay-600 w-full rounded-2xl bg-violet-600 py-4 font-medium text-white transition-colors hover:bg-violet-700"
+                className="animate-element animate-delay-600 w-full rounded-2xl bg-gradient-to-r from-teal-600 to-cyan-600 py-4 font-medium text-white transition-colors hover:from-teal-700 hover:to-cyan-700"
               >
                 Sign In
               </button>
@@ -159,7 +159,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
                   event.preventDefault()
                   onCreateAccount?.()
                 }}
-                className="text-violet-600 transition-colors hover:underline"
+                className="text-teal-600 transition-colors hover:underline"
               >
                 Create Account
               </a>

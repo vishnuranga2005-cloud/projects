@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { signUpWithPassword, signInWithPassword } from '../lib/auth';
+import { SignInPage, type Testimonial } from '@/components/ui/sign-in';
 
 interface LoginProps {
   onLoginSuccess: () => void;
@@ -17,6 +18,21 @@ export default function Login({ onLoginSuccess: _onLoginSuccess }: LoginProps) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const testimonials: Testimonial[] = [
+    {
+      avatarSrc: 'https://randomuser.me/api/portraits/women/65.jpg',
+      name: 'Dr. Ananya Sharma',
+      handle: '@mediflowcare',
+      text: 'MediFlow keeps appointments, patient records, and care coordination in one place.',
+    },
+    {
+      avatarSrc: 'https://randomuser.me/api/portraits/men/75.jpg',
+      name: 'Rahul Mehta',
+      handle: '@mediflowpatient',
+      text: 'Booking appointments and tracking medical history feels simple and reliable.',
+    },
+  ];
 
   const handleSubmit = async () => {
     if (!email.trim()) {
@@ -59,6 +75,52 @@ export default function Login({ onLoginSuccess: _onLoginSuccess }: LoginProps) {
     }
   };
 
+  if (!isSignUp) {
+    return (
+      <SignInPage
+        title={<span className="font-light tracking-tighter text-slate-900">Welcome to MediFlow</span>}
+        description="Sign in to book appointments, manage your care, and stay connected with your providers."
+        heroImageSrc="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=2160&q=80"
+        testimonials={testimonials}
+        onSignIn={(event) => {
+          event.preventDefault();
+          const formData = new FormData(event.currentTarget);
+          const emailValue = String(formData.get('email') || '').trim();
+          const passwordValue = String(formData.get('password') || '').trim();
+
+          if (!emailValue) {
+            setError('Please enter your email');
+            return;
+          }
+          if (!passwordValue || passwordValue.length < 6) {
+            setError('Password must be at least 6 characters');
+            return;
+          }
+
+          setError('');
+          setSuccess('');
+          setIsLoading(true);
+
+          signInWithPassword(emailValue, passwordValue).then((result) => {
+            setIsLoading(false);
+            if (result.success && result.user) {
+              setUser(result.user);
+            } else {
+              setError(result.error || 'Login failed');
+            }
+          });
+        }}
+        onGoogleSignIn={() => setError('Google sign-in is not configured in this Mediflow build yet.')}
+        onResetPassword={() => setError('Reset password flow can be connected to Supabase email auth next.')}
+        onCreateAccount={() => {
+          setIsSignUp(true);
+          setError('');
+          setSuccess('');
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-white flex items-center justify-center p-6">
       <div className="max-w-md w-full">
@@ -70,7 +132,7 @@ export default function Login({ onLoginSuccess: _onLoginSuccess }: LoginProps) {
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            {t('login.welcome') || 'Welcome to MediFlow'}
+            {t('login.welcome') || 'Create your MediFlow account'}
           </h1>
           <p className="text-gray-600">
             {isSignUp ? 'Create your account to get started' : 'Sign in to continue'}
