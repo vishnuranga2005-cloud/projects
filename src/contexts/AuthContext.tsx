@@ -14,6 +14,21 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const isConnectivityError = (error: any): boolean => {
+  const message = error?.message || String(error);
+
+  return (
+    message.includes('Failed to fetch') ||
+    message.includes('NetworkError') ||
+    message.includes('fetch failed') ||
+    message.includes('ENOTFOUND') ||
+    message.includes('EAI_AGAIN') ||
+    message.includes('Could not resolve host') ||
+    message.includes('ECONNREFUSED') ||
+    message.includes('EHOSTUNREACH')
+  );
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,7 +61,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setConnectionError(null);
         }
       } catch (error: any) {
-        console.error('Auth initialization error:', error);
+        if (!isConnectivityError(error)) {
+          console.error('Auth initialization error:', error);
+        }
         // Don't set a connection error here - let the app load in offline mode
         setConnectionError(null);
       } finally {
