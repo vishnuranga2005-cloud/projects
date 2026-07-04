@@ -10,6 +10,16 @@ const nextConfig = {
   images: {
     unoptimized: false,
     formats: ['image/webp', 'image/avif'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'randomuser.me',
+      },
+    ],
   },
   experimental: {
     optimizePackageImports: ['@supabase/supabase-js'],

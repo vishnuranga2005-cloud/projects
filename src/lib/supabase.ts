@@ -129,7 +129,7 @@ export const handleDatabaseError = (error: any): { message: string; isNetworkErr
 
   if (isConnectionFailure) {
     return {
-      message: 'Unable to connect to the server. Please check your internet connection or try again later.',
+      message: 'Unable to reach Supabase right now. Please check your internet connection or try again later.',
       isNetworkError: true,
     };
   }

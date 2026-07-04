@@ -12,7 +12,11 @@ const handleNetworkError = (error: any): string => {
   const { message, isNetworkError } = handleDatabaseError(error);
   
   if (isNetworkError) {
-    return message + ' If the problem persists, check that:\n1. Your internet connection is working\n2. Your Supabase project is active (not paused)\n3. Your environment variables are correct';
+    if (message.includes('Unable to reach Supabase right now')) {
+      return message + ' If the issue continues, verify that your Supabase project is active and your environment variables are correct.';
+    }
+
+    return message + ' If the problem persists, check that your internet connection is working and your Supabase environment variables are correct.';
   }
   
   return message || error.message || 'An unexpected error occurred';
