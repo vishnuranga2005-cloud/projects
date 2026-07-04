@@ -45,51 +45,24 @@ export default function ErrorBoundary({ children }: ErrorBoundaryProps) {
 
   if (errorState.hasError) {
     return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        padding: '20px',
-        backgroundColor: '#f3f4f6',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-      }}>
-        <div style={{
-          maxWidth: '600px',
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '40px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        }}>
-          <h1 style={{ color: '#dc2626', marginBottom: '20px' }}>
-            ⚠️ Application Error
+      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-100 p-5 text-slate-900">
+        <div className="w-full max-w-2xl rounded-2xl bg-white p-10 shadow-xl ring-1 ring-slate-200">
+          <h1 className="mb-5 text-2xl font-semibold text-red-600">
+            Application Error
           </h1>
-          <p style={{ color: '#6b7280', marginBottom: '20px' }}>
-            Something went wrong. This is usually due to missing environment variables.
+          <p className="mb-5 text-slate-600">
+            Something went wrong. This is usually due to missing environment variables or a downstream service issue.
           </p>
-          
-          <div style={{
-            backgroundColor: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: '4px',
-            padding: '15px',
-            marginBottom: '20px',
-          }}>
-            <h3 style={{ marginTop: 0, color: '#991b1b' }}>Error Details:</h3>
-            <pre style={{
-              backgroundColor: '#fff7ed',
-              padding: '10px',
-              borderRadius: '4px',
-              overflow: 'auto',
-              fontSize: '12px',
-            }}>
+
+          <div className="mb-5 rounded-lg border border-red-200 bg-red-50 p-4">
+            <h3 className="mt-0 font-semibold text-red-900">Error Details:</h3>
+            <pre className="overflow-auto rounded-md bg-amber-50 p-3 text-sm text-slate-800 whitespace-pre-wrap">
               {errorState.error?.message || 'Unknown error'}
             </pre>
           </div>
 
-          <h3 style={{ color: '#1f2937', marginTop: '30px' }}>Setup Required:</h3>
-          <ol style={{ color: '#4b5563' }}>
+          <h3 className="mt-8 font-semibold text-slate-800">Setup Required:</h3>
+          <ol className="space-y-1 text-slate-600">
             <li>Go to <strong>Vercel Dashboard</strong></li>
             <li>Select your project</li>
             <li>Go to <strong>Settings → Environment Variables</strong></li>
@@ -105,16 +78,7 @@ export default function ErrorBoundary({ children }: ErrorBoundaryProps) {
 
           <button
             onClick={() => window.location.reload()}
-            style={{
-              marginTop: '20px',
-              padding: '10px 20px',
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '16px',
-            }}
+            className="mt-5 inline-flex items-center rounded-lg bg-blue-600 px-5 py-2.5 text-base font-medium text-white transition hover:bg-blue-700"
           >
             Retry
           </button>

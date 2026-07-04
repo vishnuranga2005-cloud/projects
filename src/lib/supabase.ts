@@ -99,14 +99,35 @@ export const supabase = typeof window !== 'undefined' ? getSupabaseClient() : cr
 // Helper function to handle errors with user-friendly messages
 export const handleDatabaseError = (error: any): { message: string; isNetworkError: boolean } => {
   const errorMessage = error?.message || String(error);
-  
-  // Check for network-related errors
-  if (
+
+  const isDnsResolutionError = (
+    errorMessage.includes('ENOTFOUND') ||
+    errorMessage.includes('EAI_AGAIN') ||
+    errorMessage.includes('Could not resolve host') ||
+    errorMessage.includes('Name or service not known') ||
+    errorMessage.includes('DNS')
+  );
+
+  const isConnectionFailure = (
     errorMessage.includes('Failed to fetch') ||
     errorMessage.includes('NetworkError') ||
+    errorMessage.includes('fetch failed') ||
     errorMessage.includes('timeout') ||
-    errorMessage.includes('The operation timed out')
-  ) {
+    errorMessage.includes('The operation timed out') ||
+    errorMessage.includes('ECONNREFUSED') ||
+    errorMessage.includes('EHOSTUNREACH') ||
+    isDnsResolutionError
+  );
+  
+  // Check for network-related errors
+  if (isDnsResolutionError) {
+    return {
+      message: 'Unable to resolve your Supabase host. Check that NEXT_PUBLIC_SUPABASE_URL points to a valid Supabase project, and verify your internet or DNS connection.',
+      isNetworkError: true,
+    };
+  }
+
+  if (isConnectionFailure) {
     return {
       message: 'Unable to connect to the server. Please check your internet connection or try again later.',
       isNetworkError: true,
